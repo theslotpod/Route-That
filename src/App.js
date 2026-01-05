@@ -1,8 +1,7 @@
-// App.js
+// App.js (Iteration 2 - Slogan Updated, Cursor Removed)
 
 import React, { useState } from "react";
 import Field from "./Field";
-// Standard plays are no longer imported as the app starts directly into custom mode
 
 // Define the expected unscaled field width (based on Field.js constants)
 const FIELD_WIDTH = 500; 
@@ -25,10 +24,9 @@ const getScaleFactor = () => {
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [selectedPlay, setSelectedPlay] = useState(null);
-  const [isCustom, setIsCustom] = useState(false); // New state to track if we're in custom mode
+  const [isCustom, setIsCustom] = useState(false); 
 
   const handleStart = () => {
-    // New simplified flow: Set to custom mode and go straight to simulation
     setSelectedPlay(null);
     setIsCustom(true); 
     setScreen("simulation");
@@ -42,31 +40,55 @@ export default function App() {
     height: "100vh", 
     width: "100vw", 
     fontFamily: "'Press Start 2P', cursive", 
-    background: "#222",
-    color: "#fff",
+    background: "#000", // Pure black for terminal
+    color: "#00ff00", // Green terminal text
+    
+    // Add subtle scan line effect (optional but nice for retro)
+    backgroundImage: 'linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px)',
+    backgroundSize: '100% 4px',
+    padding: '20px',
+  };
+
+  const titleStyle = {
+    fontSize: 48, // Slightly smaller than Iteration 1
+    marginBottom: 30, 
+    color: "#00ff00", 
+    textShadow: '0 0 10px rgba(0, 255, 0, 0.8)', // Strong green glow
+    letterSpacing: '3px'
+  };
+  
+  // Custom component for the blinking terminal text effect (Cursor removed)
+  const TerminalText = ({ text }) => {
+    return (
+        <div style={{ fontSize: '18px', marginBottom: '15px' }}>
+            <span style={{color: 'yellow'}}>{text}</span>
+        </div>
+    );
   };
 
   const buttonStyle = {
-    padding: "20px 40px",
+    padding: "15px 40px",
     margin: "10px",
     fontSize: "16px",
     fontFamily: "'Press Start 2P', cursive",
-    background: "#ffcc00",
-    color: "#222",
-    border: "4px solid #fff",
+    background: "#00ff00",
+    color: "#000",
+    border: "2px solid #00ff00",
     cursor: "pointer",
-    boxShadow: "4px 4px 0 #000",
+    boxShadow: "0 0 8px rgba(0, 255, 0, 0.7)",
     transition: "all 0.1s",
   };
 
   const buttonHover = (e) => {
-    e.target.style.transform = "translate(2px,2px)";
-    e.target.style.boxShadow = "2px 2px 0 #000";
+    e.target.style.background = "#333";
+    e.target.style.color = "#00ff00";
+    e.target.style.boxShadow = "0 0 15px #00ff00";
   };
 
   const buttonLeave = (e) => {
-    e.target.style.transform = "translate(0,0)";
-    e.target.style.boxShadow = "4px 4px 0 #000";
+    e.target.style.background = "#00ff00";
+    e.target.style.color = "#000";
+    e.target.style.boxShadow = "0 0 8px rgba(0, 255, 0, 0.7)";
   };
   
   // --- Rendering Logic ---
@@ -74,10 +96,11 @@ export default function App() {
   if (screen === "home") {
     return (
       <div style={screenStyle}>
-        <h1 style={{ fontSize: 64, color: "#ffcc00", marginBottom: 40 }}>ROUTE THAT</h1>
+        <h1 style={titleStyle}>ROUTE THAT</h1>
+        <TerminalText text="BUILD THE ROUTE. BREAK THE COVERAGE." />
         <button
           style={buttonStyle}
-          onClick={handleStart} // Now goes directly to simulation setup
+          onClick={handleStart}
           onMouseEnter={buttonHover}
           onMouseLeave={buttonLeave}
         >
@@ -86,8 +109,6 @@ export default function App() {
       </div>
     );
   }
-
-  // The 'selectPlay' screen has been removed
 
   if (screen === "simulation") {
       const scaleFactor = getScaleFactor();
@@ -101,7 +122,6 @@ export default function App() {
           width: "100vw", 
           background: "#111", 
           
-          // Apply dynamic scaling
           transform: `scale(${scaleFactor})`,
           transformOrigin: 'center center', 
         }}
