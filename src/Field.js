@@ -74,7 +74,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
         setPlayers([...compiledOffense, ...compiledDefense]);
         
         // Set startYardsLine to the Line of Scrimmage (C position Y), which is 540 by default.
-        setStartYardsLine(routeData.QB.start[1]); // Changed from C to QB for consistency, assuming QB is center
+        setStartYardsLine(routeData.C.start[1]);
         setPassStatus("PENDING");
         setYardsGained(0);
         timeRef.current = 0;
@@ -116,14 +116,11 @@ export default function Field({ selectedPlayProp, isCustom }) {
         }
     }
     
-    // --- COMBINED CLICK/TAP HANDLER ---
-    const handleFieldInteraction = (e) => {
+    // This handler now works for both mouse click and finger tap
+    const handleFieldClick = (e) => {
         if (mode !== 'setup' || setupPhase !== 'routes' || !editingPlayer) return;
-        
         const stage = e.target.getStage();
-        // Use Konva's getPointerPosition() which handles both mouse and touch
         const pointerPos = stage.getPointerPosition();
-        
         const x = pointerPos.x;
         const y = pointerPos.y;
 
@@ -247,7 +244,8 @@ export default function Field({ selectedPlayProp, isCustom }) {
     useEffect(() => {
         if (mode !== 'run' || !running) { 
             if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameFrameId.current);
+                // FIX: Corrected typo from animationFrameFrameId to animationFrameId
+                cancelAnimationFrame(animationFrameId.current); 
                 animationFrameId.current = null;
             }
             return; 
@@ -530,28 +528,40 @@ export default function Field({ selectedPlayProp, isCustom }) {
         <div style={{ position: "relative", width: FIELD_WIDTH }}>
             {/* --- CONTROLS / MODE TOGGLE --- */}
             <div style={{ padding: '10px', background: '#333', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, color: mode === 'setup' ? 'yellow' : 'cyan' }}>
-                        Mode: {mode.toUpperCase()}
-                    </h3>
-
-                    {/* Playback Speed Slider */}
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <label htmlFor="speed-slider" style={{ fontSize: '12px', marginRight: '10px' }}>
-                            Playback Speed: {speedLabel}
-                        </label>
-                        <input
-                            type="range"
-                            id="speed-slider"
-                            min="1"
-                            max="10"
-                            step="1"
-                            value={sliderValue}
-                            onChange={(e) => setPlaybackSpeedMultiplier(Number(e.target.value))}
-                            style={{ width: '150px' }}
-                        />
+                <h3 style={{ margin: 0, color: mode === 'setup' ? 'yellow' : 'cyan' }}>
+                    Mode: {mode.toUpperCase()}
+                </h3>
+                {defensiveCoverage && (
+                    <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: 'red' }}>
+                        DEFENSE: **{defensiveCoverage.toUpperCase().replace('COVER', 'COVER ')}**
+                    </p>
+                )}
+                
+                {/* --- PLAYBACK SPEED SLIDER --- */}
+                <div style={{ marginTop: '10px', padding: '10px', border: '1px solid gray', borderRadius: '5px' }}>
+                    <label htmlFor="speed-slider" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        Play Speed: <span style={{ color: 'yellow' }}>{speedLabel}</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="speed-slider"
+                        min="1"
+                        max="10"
+                        // Slider value is now equal to the multiplier (1 to 10)
+                        value={sliderValue}
+                        onChange={(e) => {
+                            // The multiplier is now directly the slider value, which makes 1 the slowest and 10 the fastest
+                            const newMultiplier = parseInt(e.target.value, 10);
+                            setPlaybackSpeedMultiplier(newMultiplier);
+                        }}
+                        style={{ width: '100%' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                        <span>1x (Slowest)</span>
+                        <span>10x (Fastest)</span>
                     </div>
                 </div>
+
 
                 {/* EDITOR CONTROLS (Only visible in Setup Mode) */}
                 {mode === 'setup' && (
@@ -585,7 +595,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                                     </button>
                                 ))}
                                 <p style={{ fontSize: '12px', margin: '5px 0' }}>
-                                    Click/Tap field to draw points for **{editingPlayer}**.
+                                    Click/Tap field to draw points for **{editingPlayer}**. (Time is now calculated by speed)
                                 </p>
                             </>
                         )}
@@ -637,9 +647,9 @@ export default function Field({ selectedPlayProp, isCustom }) {
             <Stage 
                 width={FIELD_WIDTH} 
                 height={FIELD_HEIGHT} 
-                // NEW: Use handleFieldInteraction for both touch and click
-                onClick={handleFieldInteraction}
-                onTap={handleFieldInteraction}
+                // Enable click (desktop) and tap (mobile) for route drawing
+                onClick={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
+                onTap={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
                 style={{ cursor: stageCursor }}
             >
                 <Layer>
