@@ -1,38 +1,23 @@
+// App.js
+
 import React, { useState } from "react";
 import Field from "./Field";
-import vertical from "./plays/vertical";
-import comeback from "./plays/comeback";
-
-// Define a placeholder object for the custom play since there is no file to import.
-const customPlayPlaceholder = { name: "custom" };
-
-// Combine all selectable plays into a single array, including the custom placeholder.
-const allSelectablePlays = [
-    { ...vertical, name: "vertical" }, 
-    { ...comeback, name: "comeback" },
-    customPlayPlaceholder
-].filter(play => play.name !== 'vertical' && play.name !== 'comeback');
+// Standard plays are no longer imported as the app starts directly into custom mode
 
 // Define the expected unscaled field width (based on Field.js constants)
 const FIELD_WIDTH = 500; 
 
 /**
  * Helper to determine dynamic scale factor for responsive design.
- * Applies a fixed scale for large screens (desktop) and dynamic scale for small screens (mobile).
  */
 const getScaleFactor = () => {
   const windowWidth = window.innerWidth;
-  // Use a standard breakpoint for desktop
   const desktopBreakpoint = 700; 
-  // INCREASED SCALE TO 0.95 (95%) FOR LARGER DESKTOP VIEW
   const desktopScale = 0.80; 
 
   if (windowWidth > desktopBreakpoint) {
-    // Desktop/Large Screen: Apply a fixed, smaller scale (95%).
     return desktopScale;
   } else {
-    // Mobile/Small Screen: Scale to fit 95% of the window width for full responsiveness.
-    // Ensure we don't scale up past the original size (1.0)
     return Math.min(1.0, (windowWidth * 0.95) / FIELD_WIDTH);
   }
 }
@@ -42,22 +27,10 @@ export default function App() {
   const [selectedPlay, setSelectedPlay] = useState(null);
   const [isCustom, setIsCustom] = useState(false); // New state to track if we're in custom mode
 
-  const handleStart = () => setScreen("selectPlay");
-
-  const handlePlaySelect = (play) => {
-    // Check if the selected play is the custom placeholder
-    const isCustomPlay = play.name === customPlayPlaceholder.name;
-    
-    // If it's custom, we set isCustom to true and don't pass any static play data.
-    if (isCustomPlay) {
-        setSelectedPlay(null);
-        setIsCustom(true);
-    } else {
-        // If it's a standard play, set the play data and isCustom to false.
-        setSelectedPlay(play);
-        setIsCustom(false);
-    }
-    
+  const handleStart = () => {
+    // New simplified flow: Set to custom mode and go straight to simulation
+    setSelectedPlay(null);
+    setIsCustom(true); 
     setScreen("simulation");
   };
 
@@ -66,9 +39,9 @@ export default function App() {
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh", // Use 100vh to fill the viewport height
-    width: "100vw",  // Use 100vw to fill the viewport width
-    fontFamily: "'Press Start 2P', cursive", // retro 8-bit font
+    height: "100vh", 
+    width: "100vw", 
+    fontFamily: "'Press Start 2P', cursive", 
     background: "#222",
     color: "#fff",
   };
@@ -104,7 +77,7 @@ export default function App() {
         <h1 style={{ fontSize: 64, color: "#ffcc00", marginBottom: 40 }}>ROUTE THAT</h1>
         <button
           style={buttonStyle}
-          onClick={handleStart}
+          onClick={handleStart} // Now goes directly to simulation setup
           onMouseEnter={buttonHover}
           onMouseLeave={buttonLeave}
         >
@@ -114,35 +87,7 @@ export default function App() {
     );
   }
 
-  if (screen === "selectPlay") {
-    return (
-      <div style={screenStyle}>
-        <h2 style={{ fontSize: 32, marginBottom: 30 }}>Build a Play!</h2>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          {allSelectablePlays.map((play, i) => {
-            const isCustomPlay = play.name === 'custom';
-            return (
-              <button
-                key={i}
-                style={{
-                  ...buttonStyle,
-                  // Highlight the custom button differently
-                  background: isCustomPlay ? '#00cc66' : '#ffcc00', 
-                }}
-                onClick={() => handlePlaySelect(play)}
-                onMouseEnter={buttonHover}
-                onMouseLeave={buttonLeave}
-              >
-                {/* Renamed custom play button from CUSTOM to START */}
-                {isCustomPlay ? 'START' : play.name.toUpperCase()} 
-              </button>
-            );
-          })}
-          
-        </div>
-      </div>
-    );
-  }
+  // The 'selectPlay' screen has been removed
 
   if (screen === "simulation") {
       const scaleFactor = getScaleFactor();
@@ -153,10 +98,10 @@ export default function App() {
           justifyContent: "center",
           alignItems: "center", 
           height: "100vh", 
-          width: "100vw", // Use 100vw here as well
-          background: "#111", // Black background for simulation
+          width: "100vw", 
+          background: "#111", 
           
-          // APPLY DYNAMIC SCALING
+          // Apply dynamic scaling
           transform: `scale(${scaleFactor})`,
           transformOrigin: 'center center', 
         }}
