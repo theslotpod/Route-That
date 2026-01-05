@@ -1,0 +1,80 @@
+body {
+  margin: 0;
+  background-color: #4ecdc4;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Titles */
+.title {
+  font-size: 32px;
+  color: #ffbe0b;
+  text-shadow: 4px 4px #000;
+  margin-bottom: 30px;
+}
+
+/* Pixel football */
+.pixel-football {
+  width: 8px;
+  height: 8px;
+  background: #8b4513;
+  transform: scale(3);
+  box-shadow:
+    8px 0 #8b4513,
+    16px 0 #8b4513,
+    24px 0 #8b4513,
+    0 8px #8b4513,
+    8px 8px #ffffff,
+    16px 8px #ffffff,
+    24px 8px #8b4513,
+    0 16px #8b4513,
+    8px 16px #ffffff,
+    16px 16px #ffffff,
+    24px 16px #8b4513,
+    8px 24px #8b4513,
+    16px 24px #8b4513;
+  image-rendering: pixelated;
+  margin-bottom: 40px;
+}
+
+/* Bounce animation */
+.bounce {
+  animation: bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0) scale(3); }
+  50% { transform: translateY(-15px) scale(3); }
+}
+
+/* Buttons */
+.start-button, .offensive-button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  padding: 16px 32px;
+  background-color: #ff006e;
+  color: white;
+  border: 4px solid #000;
+  cursor: pointer;
+  box-shadow: 4px 4px #000;
+  margin: 10px;
+}
+
+.start-button:active, .offensive-button:active {
+  box-shadow: 2px 2px #000;
+  transform: translate(2px, 2px);
+}
+
+.play-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
