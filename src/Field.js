@@ -74,7 +74,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
         setPlayers([...compiledOffense, ...compiledDefense]);
         
         // Set startYardsLine to the Line of Scrimmage (C position Y), which is 540 by default.
-        setStartYardsLine(routeData.C.start[1]);
+        setStartYardsLine(routeData.QB.start[1]); // Changed from C to QB for consistency, assuming QB is center
         setPassStatus("PENDING");
         setYardsGained(0);
         timeRef.current = 0;
@@ -116,10 +116,14 @@ export default function Field({ selectedPlayProp, isCustom }) {
         }
     }
     
-    const handleFieldClick = (e) => {
+    // --- COMBINED CLICK/TAP HANDLER ---
+    const handleFieldInteraction = (e) => {
         if (mode !== 'setup' || setupPhase !== 'routes' || !editingPlayer) return;
+        
         const stage = e.target.getStage();
+        // Use Konva's getPointerPosition() which handles both mouse and touch
         const pointerPos = stage.getPointerPosition();
+        
         const x = pointerPos.x;
         const y = pointerPos.y;
 
@@ -243,7 +247,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
     useEffect(() => {
         if (mode !== 'run' || !running) { 
             if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameId.current);
+                cancelAnimationFrame(animationFrameFrameId.current);
                 animationFrameId.current = null;
             }
             return; 
@@ -531,7 +535,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                         Mode: {mode.toUpperCase()}
                     </h3>
 
-                    {/* RESTORED: Playback Speed Slider */}
+                    {/* Playback Speed Slider */}
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <label htmlFor="speed-slider" style={{ fontSize: '12px', marginRight: '10px' }}>
                             Playback Speed: {speedLabel}
@@ -581,7 +585,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                                     </button>
                                 ))}
                                 <p style={{ fontSize: '12px', margin: '5px 0' }}>
-                                    Click field to draw points for **{editingPlayer}**. (Time is now calculated by speed)
+                                    Click/Tap field to draw points for **{editingPlayer}**.
                                 </p>
                             </>
                         )}
@@ -633,7 +637,9 @@ export default function Field({ selectedPlayProp, isCustom }) {
             <Stage 
                 width={FIELD_WIDTH} 
                 height={FIELD_HEIGHT} 
-                onClick={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
+                // NEW: Use handleFieldInteraction for both touch and click
+                onClick={handleFieldInteraction}
+                onTap={handleFieldInteraction}
                 style={{ cursor: stageCursor }}
             >
                 <Layer>

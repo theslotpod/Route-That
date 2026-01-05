@@ -4,7 +4,6 @@ import vertical from "./plays/vertical";
 import comeback from "./plays/comeback";
 
 // Define a placeholder object for the custom play since there is no file to import.
-// We give it a recognizable name.
 const customPlayPlaceholder = { name: "custom" };
 
 // Combine all selectable plays into a single array, including the custom placeholder.
@@ -13,6 +12,20 @@ const allSelectablePlays = [
     { ...comeback, name: "comeback" },
     customPlayPlaceholder
 ].filter(play => play.name !== 'vertical' && play.name !== 'comeback');
+
+// Helper to determine dynamic scale factor
+const getScaleFactor = () => {
+  // Assuming FIELD_WIDTH is around 500 (based on Field.js content)
+  const FIELD_WIDTH = 500; 
+  const windowWidth = window.innerWidth;
+  
+  // If the window is smaller than the desktop width, scale down.
+  if (windowWidth < FIELD_WIDTH) {
+    // Scale to 95% of the window width for a small margin.
+    return (windowWidth * 0.95) / FIELD_WIDTH;
+  }
+  return 1; // Do not scale up beyond the original size
+}
 
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -121,20 +134,20 @@ export default function App() {
   }
 
   if (screen === "simulation") {
+      const scaleFactor = getScaleFactor();
     return (
       <div
         style={{
           display: "flex",
           justifyContent: "center",
-          // FIXED: Use alignItems: center and set height to 100vh on the body/root for true centering
           alignItems: "center", 
-          height: "100vh", // Use full viewport height
+          height: "100vh", 
           width: "100%",
-          background: "#111", // Ensure background is black
+          background: "#111", 
           
-          // SCALING REMAINS
-          transform: 'scale(0.85)',
-          transformOrigin: 'center center', // FIXED: Center the transform for better layout
+          // DYNAMIC SCALING FOR MOBILE
+          transform: `scale(${scaleFactor})`,
+          transformOrigin: 'center center', 
         }}
       >
         {/* Pass both the selected play data and the new isCustom flag to Field */}
