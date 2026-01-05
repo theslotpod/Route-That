@@ -13,18 +13,28 @@ const allSelectablePlays = [
     customPlayPlaceholder
 ].filter(play => play.name !== 'vertical' && play.name !== 'comeback');
 
-// Helper to determine dynamic scale factor
+// Define the expected unscaled field width (based on Field.js constants)
+const FIELD_WIDTH = 500; 
+
+/**
+ * Helper to determine dynamic scale factor for responsive design.
+ * Applies a fixed scale for large screens (desktop) and dynamic scale for small screens (mobile).
+ */
 const getScaleFactor = () => {
-  // Assuming FIELD_WIDTH is around 500 (based on Field.js content)
-  const FIELD_WIDTH = 500; 
   const windowWidth = window.innerWidth;
-  
-  // If the window is smaller than the desktop width, scale down.
-  if (windowWidth < FIELD_WIDTH) {
-    // Scale to 95% of the window width for a small margin.
-    return (windowWidth * 0.95) / FIELD_WIDTH;
+  // Use a standard breakpoint for desktop
+  const desktopBreakpoint = 700; 
+  // INCREASED SCALE TO 0.95 (95%) FOR LARGER DESKTOP VIEW
+  const desktopScale = 0.975; 
+
+  if (windowWidth > desktopBreakpoint) {
+    // Desktop/Large Screen: Apply a fixed, smaller scale (95%).
+    return desktopScale;
+  } else {
+    // Mobile/Small Screen: Scale to fit 95% of the window width for full responsiveness.
+    // Ensure we don't scale up past the original size (1.0)
+    return Math.min(1.0, (windowWidth * 0.95) / FIELD_WIDTH);
   }
-  return 1; // Do not scale up beyond the original size
 }
 
 export default function App() {
@@ -56,7 +66,8 @@ export default function App() {
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
+    height: "100vh", // Use 100vh to fill the viewport height
+    width: "100vw",  // Use 100vw to fill the viewport width
     fontFamily: "'Press Start 2P', cursive", // retro 8-bit font
     background: "#222",
     color: "#fff",
@@ -142,15 +153,14 @@ export default function App() {
           justifyContent: "center",
           alignItems: "center", 
           height: "100vh", 
-          width: "100%",
-          background: "#111", 
+          width: "100vw", // Use 100vw here as well
+          background: "#111", // Black background for simulation
           
-          // DYNAMIC SCALING FOR MOBILE
+          // APPLY DYNAMIC SCALING
           transform: `scale(${scaleFactor})`,
           transformOrigin: 'center center', 
         }}
       >
-        {/* Pass both the selected play data and the new isCustom flag to Field */}
         <Field selectedPlayProp={selectedPlay} isCustom={isCustom} />
       </div>
     );

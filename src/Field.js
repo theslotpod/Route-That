@@ -116,7 +116,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
         }
     }
     
-    // This handler now works for both mouse click and finger tap
     const handleFieldClick = (e) => {
         if (mode !== 'setup' || setupPhase !== 'routes' || !editingPlayer) return;
         const stage = e.target.getStage();
@@ -244,8 +243,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
     useEffect(() => {
         if (mode !== 'run' || !running) { 
             if (animationFrameId.current) {
-                // FIX: Corrected typo from animationFrameFrameId to animationFrameId
-                cancelAnimationFrame(animationFrameId.current); 
+                cancelAnimationFrame(animationFrameId.current);
                 animationFrameId.current = null;
             }
             return; 
@@ -528,17 +526,10 @@ export default function Field({ selectedPlayProp, isCustom }) {
         <div style={{ position: "relative", width: FIELD_WIDTH }}>
             {/* --- CONTROLS / MODE TOGGLE --- */}
             <div style={{ padding: '10px', background: '#333', color: 'white' }}>
-                <h3 style={{ margin: 0, color: mode === 'setup' ? 'yellow' : 'cyan' }}>
-                    Mode: {mode.toUpperCase()}
-                </h3>
-                {defensiveCoverage && (
-                    <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: 'red' }}>
-                        DEFENSE: **{defensiveCoverage.toUpperCase().replace('COVER', 'COVER ')}**
-                    </p>
-                )}
+                {/* Mode and Defense lines REMOVED */}
                 
                 {/* --- PLAYBACK SPEED SLIDER --- */}
-                <div style={{ marginTop: '10px', padding: '10px', border: '1px solid gray', borderRadius: '5px' }}>
+                <div style={{ padding: '10px', border: '1px solid gray', borderRadius: '5px' }}>
                     <label htmlFor="speed-slider" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                         Play Speed: <span style={{ color: 'yellow' }}>{speedLabel}</span>
                     </label>
@@ -595,7 +586,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                                     </button>
                                 ))}
                                 <p style={{ fontSize: '12px', margin: '5px 0' }}>
-                                    Click/Tap field to draw points for **{editingPlayer}**. (Time is now calculated by speed)
+                                    Click field to draw points for **{editingPlayer}**. (Time is now calculated by speed)
                                 </p>
                             </>
                         )}
@@ -647,7 +638,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
             <Stage 
                 width={FIELD_WIDTH} 
                 height={FIELD_HEIGHT} 
-                // Enable click (desktop) and tap (mobile) for route drawing
+                // Using onClick/onTap for unified desktop/mobile route drawing
                 onClick={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
                 onTap={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
                 style={{ cursor: stageCursor }}
