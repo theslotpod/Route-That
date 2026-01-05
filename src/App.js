@@ -25,7 +25,7 @@ const getScaleFactor = () => {
   // Use a standard breakpoint for desktop
   const desktopBreakpoint = 700; 
   // INCREASED SCALE TO 0.95 (95%) FOR LARGER DESKTOP VIEW
-  const desktopScale = 0.975; 
+  const desktopScale = 0.87; 
 
   if (windowWidth > desktopBreakpoint) {
     // Desktop/Large Screen: Apply a fixed, smaller scale (95%).
