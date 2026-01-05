@@ -28,6 +28,7 @@ import {
 import { distToSegment } from "./components/utils"; 
 import { getPlayerPos, calculateOpennessScore, getPlayerDefinition } from "./components/playerLogic"; 
 import { generateRandomDefense, compileDefenseMovement } from "./components/defenseLogic"; 
+import { loadSavedPlays, savePlay, deletePlay } from "./components/playStorage";
 
 
 export default function Field({ selectedPlayProp, isCustom }) {
@@ -52,6 +53,10 @@ export default function Field({ selectedPlayProp, isCustom }) {
     // Initial multiplier is set to the slowest speed (1x)
     const [playbackSpeedMultiplier, setPlaybackSpeedMultiplier] = useState(1); 
     
+    // --- NEW STATE FOR SAVED PLAYS ---
+    const [savedPlaysList, setSavedPlaysList] = useState([]); 
+    const [message, setMessage] = useState(''); // Status message for save/load/delete
+    
     const timeRef = useRef(0);
     const animationFrameId = useRef(null);
 
@@ -59,6 +64,67 @@ export default function Field({ selectedPlayProp, isCustom }) {
     const LOS_Y = 540; 
 
     // ================= NEW ROUTE EDITING / UTILITY FUNCTIONS =================
+    
+    /**
+     * Helper to load saved plays into state.
+     */
+    const refreshSavedPlays = () => {
+        setSavedPlaysList(loadSavedPlays());
+    }
+
+    /**
+     * Saves the current routeData as a new play preset.
+     */
+    const handleSavePlay = () => {
+        setRunning(false); 
+        
+        // Simple prompt for the play name
+        const playName = prompt("Enter a name for your custom play:");
+        
+        if (playName && playName.trim()) {
+            const result = savePlay(playName.trim(), routeData);
+            refreshSavedPlays(); 
+            setMessage(result.message);
+            // Clear message after 3 seconds
+            setTimeout(() => setMessage(''), 3000); 
+        } else if (playName !== null) {
+            setMessage("Play name cannot be empty.");
+            setTimeout(() => setMessage(''), 3000); 
+        }
+    }
+    
+    /**
+     * Loads a play preset from the savedPlaysList by name.
+     */
+    const handleLoadPlay = (playName) => {
+        const playToLoad = savedPlaysList.find(p => p.name === playName);
+        if (playToLoad) {
+            setRouteData(playToLoad.routeData);
+            // Transition back to setup/formation phase to allow editing or direct running
+            setMode('setup'); 
+            setSetupPhase('formation');
+            setRunning(false);
+            
+            // --- FIX APPLIED: Removed defense randomization here ---
+            // The defense (defensePlayers and defensiveCoverage) will be preserved.
+            
+            setMessage(`Play '${playName}' loaded successfully.`);
+            setTimeout(() => setMessage(''), 3000); 
+        }
+    }
+    
+    /**
+     * Deletes a play preset by name.
+     */
+    const handleDeletePlay = (playName) => {
+        if (window.confirm(`Are you sure you want to delete the play '${playName}'?`)) {
+            const result = deletePlay(playName);
+            refreshSavedPlays(); 
+            setMessage(result.message);
+            setTimeout(() => setMessage(''), 3000); 
+        }
+    }
+
 
     /**
      * Resets the waypoints for a specific player's route to an empty array.
@@ -128,7 +194,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
         setSetupPhase('formation');
         setRunning(false);
         
-        // Reset routes to default when clicking NEW PLAY
+        // Reset routes to default when clicking NEW PLAY (and randomize defense)
         if (isCustom) {
             setRouteData(defaultRouteData); 
             // The defense must be regenerated based on the now-reset routes
@@ -230,6 +296,8 @@ export default function Field({ selectedPlayProp, isCustom }) {
     }
 
     const loadPlayData = (play) => {
+        // This function is for loading pre-defined, complex play objects (if they exist).
+        // It's ignored for user-made plays (which use the simpler handleLoadPlay).
         const newRouteData = {};
         const playersToLoad = [
             { name: 'QB', data: play.qb },
@@ -273,6 +341,9 @@ export default function Field({ selectedPlayProp, isCustom }) {
 
     // --- EFFECT: Handle play loading and randomization ---
     useEffect(() => {
+        // Load saved plays on mount
+        refreshSavedPlays(); 
+        
         if (isCustom) {
             setMode('setup');
             setSetupPhase('formation'); 
@@ -306,8 +377,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
             return; 
         }
         
-        // FIX: The effective frame rate is now BASE_FRAME_RATE * MULTIPLIER.
-        // Higher multiplier (10x) means a larger time step, resulting in faster play.
         const effectiveFrameRate = BASE_FRAME_RATE * playbackSpeedMultiplier; 
         
         const loop = () => {
@@ -332,7 +401,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
                     
                     let isTackled = false;
                     
-                    // Check for tackle only if the carrier is an offensive player (prevBall.caught is true)
                     if (prevBall.caught) {
                         isTackled = defenders.some(d => {
                             const [dx, dy] = getPlayerPos(d, elapsed, prevBall.catchTime, [cx, cy]); 
@@ -341,7 +409,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
                             return distance <= TACKLE_RADIUS; 
                         });
                     } else if (prevBall.interception) {
-                         // Check for tackle if the carrier is a defensive player (interception is true)
                         const offensivePlayers = players.filter(p => p.side === 'offense' && p.type !== 'dl');
                         isTackled = offensivePlayers.some(o => {
                             const [ox, oy] = getPlayerPos(o, elapsed, prevBall.catchTime, [cx, cy]); 
@@ -352,19 +419,15 @@ export default function Field({ selectedPlayProp, isCustom }) {
                     
                     let playIsTerminatingInThisFrame = false; 
 
-
-                    
                     if (isTackled || isOutOfBounds || isTouchdown) {
                         playIsTerminatingInThisFrame = true; 
                         setRunning(false); 
                         
-                        // --- SCOREBOARD UPDATE (TOUCHDOWN/TACKLE) ---
                         if (isTouchdown) {
                             setPassStatus("TOUCHDOWN"); 
                         } else if (isTackled) {
-                            // Updated logic for TACKLED status
                             if (prevBall.caught) {
-                                setPassStatus("COMPLETE - TACKLED"); // Requested Status
+                                setPassStatus("COMPLETE - TACKLED"); 
                             } else if (prevBall.interception) {
                                 setPassStatus("INTERCEPTION - TACKLED");
                             }
@@ -377,9 +440,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                         }
                     } 
                     
-                    // Only set intermediate status if the play is still running AND it didn't terminate in this specific frame
                     if (running && !playIsTerminatingInThisFrame) {
-                        // Display base status while RAC is ongoing
                         if (prevBall.caught) {
                             setPassStatus("COMPLETE");
                         } else if (prevBall.interception) {
@@ -387,7 +448,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
                         }
                     }
 
-                    // Correct calculation for Yards Gained
                     const pxDiff = startYardsLine - cy;
                     const yards = Math.round(pxDiff / PX_PER_YARD); 
                     setYardsGained(yards);
@@ -398,7 +458,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
                 // --- PHASE 1: QB Decision Phase ---
                 if (!prevBall.thrown) { 
                     
-                    // --- SACK LOGIC ---
                     if (elapsed >= QB_THROW_TIME) { 
                         setRunning(false);
                         setPassStatus("SACK");
@@ -443,7 +502,6 @@ export default function Field({ selectedPlayProp, isCustom }) {
                         if (bestTargetName) {
                             const targetPlayer = allPlayers.find(p => p.name === bestTargetName);
                             
-                            // Calculate and store the fixed target spot for the throw
                             const [finalX, finalY] = getPlayerPos(targetPlayer, elapsed + BALL_TRAVEL_TIME, 0); 
 
                             setPassStatus("THROWN");
@@ -586,6 +644,48 @@ export default function Field({ selectedPlayProp, isCustom }) {
             {/* --- CONTROL COLUMN (LEFT SIDE) --- */}
             <div style={{ width: 250, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 
+                {/* --- SAVE/LOAD PLAY CONTROLS (NEW BLOCK) --- */}
+                <div style={{ padding: '10px', background: '#444', color: 'white', borderRadius: '5px', border: '1px solid #666' }}>
+                    <h4 style={{ margin: '0 0 10px 0', color: 'lime' }}>Manage Plays</h4>
+                    
+                    <button 
+                        onClick={handleSavePlay}
+                        style={{ padding: '8px', background: 'gold', color: 'black', fontWeight: 'bold', width: '100%', marginBottom: '10px' }}
+                        disabled={mode !== 'setup'}
+                    >
+                        SAVE CURRENT PLAY
+                    </button>
+                    
+                    {/* Display Status Message */}
+                    {message && <p style={{ fontSize: '12px', margin: '5px 0', color: message.includes('Error') || message.includes('empty') ? 'red' : 'yellow' }}>{message}</p>}
+                    
+                    <h5 style={{ margin: '10px 0 5px 0' }}>Load Saved Plays:</h5>
+                    
+                    {savedPlaysList.length === 0 ? (
+                        <p style={{ fontSize: '12px', color: 'lightgray' }}>No custom plays saved locally.</p>
+                    ) : (
+                        <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #555', padding: '5px', background: '#333' }}>
+                            {savedPlaysList.map(play => (
+                                <div key={play.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px dotted #555' }}>
+                                    <span style={{ fontSize: '14px', flexGrow: 1 }}>{play.name}</span>
+                                    <button 
+                                        onClick={() => handleLoadPlay(play.name)}
+                                        style={{ marginLeft: '5px', padding: '2px 8px', fontSize: '10px', background: 'blue', color: 'white' }}
+                                    >
+                                        LOAD
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDeletePlay(play.name)}
+                                        style={{ marginLeft: '5px', padding: '2px 8px', fontSize: '10px', background: 'red', color: 'white' }}
+                                    >
+                                        DEL
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {/* --- CONTROLS / MODE TOGGLE (Includes speed slider and setup phase controls) --- */}
                 <div style={{ padding: '10px', background: '#333', color: 'white' }}>
                     
@@ -682,7 +782,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                 {mode === 'run' && (
                     <>
                         <div 
-                            style={{ height: 60, background: "#000", border: "4px solid #00ff00", color: "#00ff00", fontFamily: "'Press Start 2P', cursive", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "5px 0", fontSize: "14px" }}
+                            style={{ height: 120, background: "#000", border: "4px solid #00ff00", color: "#00ff00", fontFamily: "'Press Start 2P', cursive", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "5px 0", fontSize: "14px" }}
                         >
                             <div style={{ textAlign: "center" }}><div style={{ fontSize: "10px" }}>STATUS</div><div style={{ fontSize: "18px", marginTop: "4px", color: (passStatus.includes("TOUCHDOWN") || passStatus.includes("INTERCEPTION") || passStatus.includes("INCOMPLETE") || passStatus.includes("TACKLED") || passStatus === "SACK") ? "yellow" : (passStatus === "THROWN" || passStatus === "COMPLETE" ? "#00ff00" : "white") }}>{passStatus.toUpperCase()}</div></div>
                             <div style={{ height: "100%", borderLeft: "2px solid #00ff00" }}></div>
@@ -851,7 +951,7 @@ export default function Field({ selectedPlayProp, isCustom }) {
                             );
                         })}
 
-                        {/* --- THE BALL --- */}
+                        {/* --- THE BALL (Ellipse Football) --- */}
                         {ball && (ball.thrown || ball.caught || ball.interception) && (
                             <React.Fragment>
                                 {/* Brown Oval Football Shape (Ellipse) */}
