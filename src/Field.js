@@ -1,7 +1,7 @@
 // Field.js
 
 import React, { useState, useEffect, useRef } from "react";
-import { Stage, Layer, Rect, Circle, Text, Line } from "react-konva";
+import { Stage, Layer, Rect, Circle, Text, Line, Ellipse } from "react-konva";
 import { 
     PX_PER_YARD, 
     BASE_FRAME_RATE, 
@@ -55,7 +55,35 @@ export default function Field({ selectedPlayProp, isCustom }) {
     const timeRef = useRef(0);
     const animationFrameId = useRef(null);
 
-    // ================= HELPER FUNCTIONS =================
+    // Line of Scrimmage Y-coordinate constant
+    const LOS_Y = 540; 
+
+    // ================= NEW ROUTE EDITING / UTILITY FUNCTIONS =================
+
+    /**
+     * Resets the waypoints for a specific player's route to an empty array.
+     */
+    const resetPlayerRoute = (playerName) => {
+        setRouteData(prevData => ({
+            ...prevData,
+            [playerName]: {
+                ...prevData[playerName],
+                waypoints: [] // Resetting route means clearing all waypoints
+            }
+        }));
+    };
+    
+    /**
+     * Transitions from Run Mode back to Routes Setup Mode, preserving the defense.
+     */
+    const backToRouteEditing = () => {
+        setMode('setup');
+        setSetupPhase('routes');
+        setRunning(false);
+        // Defense is automatically preserved (defensePlayers and defensiveCoverage state are not reset)
+    }
+
+    // ================= HELPER FUNCTIONS (Existing) =================
     
     const compileOffense = () => {
         return ALL_OFFENSE_PLAYERS
@@ -159,18 +187,47 @@ export default function Field({ selectedPlayProp, isCustom }) {
         });
     };
     
-    const handleStartDrag = (player, newPos) => {
+    /**
+     * Updates the player's start position in routeData and clamps the Y position 
+     * to prevent crossing the line of scrimmage (Y=540).
+     */
+    const updateStartPos = (player, newPos) => {
         setRouteData(prevData => {
             const currentRoute = prevData[player];
+            
+            // --- CLAMP Y-POSITION ---
+            let newY = Math.round(newPos.y);
+            if (newY < LOS_Y) {
+                newY = LOS_Y; 
+            }
+            // ------------------------
+            
             return {
                 ...prevData,
                 [player]: {
                     ...currentRoute,
-                    start: [Math.round(newPos.x), Math.round(newPos.y)]
+                    start: [Math.round(newPos.x), newY] // Use the clamped Y-value
                 }
             };
         });
-    };
+    }
+
+    /**
+     * Konva's onDragMove handler for offensive players in formation setup.
+     * Prevents the player circle from visually crossing the LOS (Y=540)
+     */
+    const handlePlayerDragMove = (e) => {
+        const node = e.target;
+        const newY = node.y(); 
+        
+        // If the circle's new Y position is less than the LOS, force it to stay at the LOS
+        if (newY < LOS_Y) {
+            node.y(LOS_Y);
+        }
+        
+        // Use the current position to update the state immediately on drag
+        updateStartPos(node.name(), node.position());
+    }
 
     const loadPlayData = (play) => {
         const newRouteData = {};
@@ -523,245 +580,304 @@ export default function Field({ selectedPlayProp, isCustom }) {
 
 
     return (
-        <div style={{ position: "relative", width: FIELD_WIDTH }}>
-            {/* --- CONTROLS / MODE TOGGLE --- */}
-            <div style={{ padding: '10px', background: '#333', color: 'white' }}>
-                {/* Mode and Defense lines REMOVED */}
+        // Outermost Flex container to position the controls on the left and the field on the right
+        <div style={{ display: "flex", alignItems: "flex-start", gap: '20px' }}>
+            
+            {/* --- CONTROL COLUMN (LEFT SIDE) --- */}
+            <div style={{ width: 250, display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 
-                {/* --- PLAYBACK SPEED SLIDER --- */}
-                <div style={{ padding: '10px', border: '1px solid gray', borderRadius: '5px' }}>
-                    <label htmlFor="speed-slider" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Play Speed: <span style={{ color: 'yellow' }}>{speedLabel}</span>
-                    </label>
-                    <input
-                        type="range"
-                        id="speed-slider"
-                        min="1"
-                        max="10"
-                        // Slider value is now equal to the multiplier (1 to 10)
-                        value={sliderValue}
-                        onChange={(e) => {
-                            // The multiplier is now directly the slider value, which makes 1 the slowest and 10 the fastest
-                            const newMultiplier = parseInt(e.target.value, 10);
-                            setPlaybackSpeedMultiplier(newMultiplier);
-                        }}
-                        style={{ width: '100%' }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-                        <span>1x (Slowest)</span>
-                        <span>10x (Fastest)</span>
+                {/* --- CONTROLS / MODE TOGGLE (Includes speed slider and setup phase controls) --- */}
+                <div style={{ padding: '10px', background: '#333', color: 'white' }}>
+                    
+                    {/* --- PLAYBACK SPEED SLIDER --- */}
+                    <div style={{ padding: '10px', border: '1px solid gray', borderRadius: '5px' }}>
+                        <label htmlFor="speed-slider" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            Play Speed: <span style={{ color: 'yellow' }}>{speedLabel}</span>
+                        </label>
+                        <input
+                            type="range"
+                            id="speed-slider"
+                            min="1"
+                            max="10"
+                            // Slider value is now equal to the multiplier (1 to 10)
+                            value={sliderValue}
+                            onChange={(e) => {
+                                // The multiplier is now directly the slider value, which makes 1 the slowest and 10 the fastest
+                                const newMultiplier = parseInt(e.target.value, 10);
+                                setPlaybackSpeedMultiplier(newMultiplier);
+                            }}
+                            style={{ width: '100%' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                            <span>1x (Slowest)</span>
+                            <span>10x (Fastest)</span>
+                        </div>
                     </div>
+
+
+                    {/* EDITOR CONTROLS (Only visible in Setup Mode) */}
+                    {mode === 'setup' && (
+                        <div style={{ marginTop: '5px' }}>
+                            {/* PHASE STATUS AND BUTTON */}
+                            <h4 style={{ marginBottom: 5, color: setupPhase === 'formation' ? 'lime' : 'yellow' }}>
+                                Phase: {setupPhase.toUpperCase()}
+                            </h4>
+
+                            {setupPhase === 'formation' ? (
+                                <>
+                                    <p style={{ fontSize: '12px', margin: '5px 0' }}>
+                                        Drag the player circles to set your formation.
+                                    </p>
+                                    <button 
+                                        onClick={() => setSetupPhase('routes')}
+                                        style={{ padding: '8px 15px', background: 'lime', color: 'black', fontWeight: 'bold' }}
+                                    >
+                                        CONFIRM FORMATION (START ROUTES)
+                                    </button>
+                                    {/* Display LOS to the user for clarification */}
+                                    <p style={{ fontSize: '10px', margin: '5px 0', color: 'red' }}>
+                                        (Offensive players cannot cross the visible red line)
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    **Editing Player:** {EDITABLE_PLAYERS.map(role => (
+                                        <button 
+                                            key={role}
+                                            onClick={() => setEditingPlayer(role)}
+                                            style={{ margin: '0 5px', background: editingPlayer === role ? 'yellow' : 'gray' }}
+                                        >
+                                            {role}
+                                        </button>
+                                    ))}
+                                    {/* RESET ROUTE BUTTON */}
+                                    <button 
+                                        onClick={() => resetPlayerRoute(editingPlayer)} 
+                                        style={{ margin: '0 5px', background: 'red', color: 'white' }}
+                                    >
+                                        RESET {editingPlayer} ROUTE
+                                    </button>
+                                    <p style={{ fontSize: '12px', margin: '5px 0' }}>
+                                        Click field to draw points for **{editingPlayer}**. (Time is now calculated by speed)
+                                    </p>
+                                </>
+                            )}
+                            
+                            {/* START SIMULATION BUTTON (visible when ready to run) */}
+                            <button 
+                                onClick={() => {
+                                    setMode('run');
+                                    compilePlay(); 
+                                    setRunning(false); // Set to false to prevent immediate start
+                                }}
+                                style={{ marginTop: '10px' }}
+                            >
+                                START CUSTOM SIMULATION
+                            </button>
+                        </div>
+                    )}
                 </div>
 
-
-                {/* EDITOR CONTROLS (Only visible in Setup Mode) */}
-                {mode === 'setup' && (
-                    <div style={{ marginTop: '5px' }}>
-                        {/* PHASE STATUS AND BUTTON */}
-                        <h4 style={{ marginBottom: 5, color: setupPhase === 'formation' ? 'lime' : 'yellow' }}>
-                            Phase: {setupPhase.toUpperCase()}
-                        </h4>
-
-                        {setupPhase === 'formation' ? (
-                            <>
-                                <p style={{ fontSize: '12px', margin: '5px 0' }}>
-                                    Drag the player circles to set your formation.
-                                </p>
-                                <button 
-                                    onClick={() => setSetupPhase('routes')}
-                                    style={{ padding: '8px 15px', background: 'lime', color: 'black', fontWeight: 'bold' }}
-                                >
-                                    CONFIRM FORMATION (START ROUTES)
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                **Editing Player:** {EDITABLE_PLAYERS.map(role => (
-                                    <button 
-                                        key={role}
-                                        onClick={() => setEditingPlayer(role)}
-                                        style={{ margin: '0 5px', background: editingPlayer === role ? 'yellow' : 'gray' }}
-                                    >
-                                        {role}
-                                    </button>
-                                ))}
-                                <p style={{ fontSize: '12px', margin: '5px 0' }}>
-                                    Click field to draw points for **{editingPlayer}**. (Time is now calculated by speed)
-                                </p>
-                            </>
-                        )}
-                        
-                        {/* START SIMULATION BUTTON (visible when ready to run) */}
-                         <button 
-                            onClick={() => {
-                                setMode('run');
-                                compilePlay(); 
-                                setRunning(false); // Set to false to prevent immediate start
-                            }}
-                            style={{ marginTop: '10px' }}
+                {/* --- SCOREBOARD & RUN BUTTONS (RUN MODE ONLY) --- */}
+                {mode === 'run' && (
+                    <>
+                        <div 
+                            style={{ height: 60, background: "#000", border: "4px solid #00ff00", color: "#00ff00", fontFamily: "'Press Start 2P', cursive", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "5px 0", fontSize: "14px" }}
                         >
-                            START CUSTOM SIMULATION
-                        </button>
-                    </div>
+                            <div style={{ textAlign: "center" }}><div style={{ fontSize: "10px" }}>STATUS</div><div style={{ fontSize: "18px", marginTop: "4px", color: (passStatus.includes("TOUCHDOWN") || passStatus.includes("INTERCEPTION") || passStatus.includes("INCOMPLETE") || passStatus.includes("TACKLED") || passStatus === "SACK") ? "yellow" : (passStatus === "THROWN" || passStatus === "COMPLETE" ? "#00ff00" : "white") }}>{passStatus.toUpperCase()}</div></div>
+                            <div style={{ height: "100%", borderLeft: "2px solid #00ff00" }}></div>
+                            <div style={{ textAlign: "center" }}><div style={{ fontSize: "10px" }}>YARDS GAINED</div><div style={{ fontSize: "18px", marginTop: "4px" }}>{yardsGained}</div></div>
+                        </div>
+
+                        {/* GAMEPLAY BUTTONS (Moved from absolute positioning to be part of the control column) */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                            {/* START/PAUSE BUTTON */}
+                            <button onClick={() => setRunning(!running)} style={{ fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "10px 10px", border: "2px solid #fff", background: running ? 'darkred' : 'green', color: "white" }}>
+                                {running ? "PAUSE" : "START"}
+                            </button>
+                            
+                            {/* REPLAY BUTTON */}
+                            <button onClick={compilePlay} style={{ fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "10px 10px", border: "2px solid #fff", background: "#555", color: "white" }}>
+                                REPLAY
+                            </button>
+                            
+                            {/* NEW PLAY BUTTON (REPLACING OLD RESET) */}
+                            <button onClick={resetToFormation} style={{ fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "10px 10px", border: "2px solid #fff", background: "orange", color: "black" }}>
+                                NEW PLAY
+                            </button>
+
+                            {/* BACK TO ROUTES BUTTON (Visible when simulation is stopped) */}
+                            {!running && (
+                                <button 
+                                    onClick={backToRouteEditing} 
+                                    style={{ fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "10px 10px", border: "2px solid #fff", background: "blue", color: "white" }}
+                                >
+                                    EDIT ROUTES
+                                </button>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
 
-            {/* --- SCOREBOARD & RUN BUTTONS --- */}
-            {mode === 'run' && (
-                <>
-                    <div 
-                        style={{ height: 60, background: "#000", border: "4px solid #00ff00", color: "#00ff00", fontFamily: "'Press Start 2P', cursive", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "5px 0", fontSize: "14px", marginTop: '5px' }}
-                    >
-                        <div style={{ textAlign: "center" }}><div style={{ fontSize: "10px" }}>STATUS</div><div style={{ fontSize: "18px", marginTop: "4px", color: (passStatus.includes("TOUCHDOWN") || passStatus.includes("INTERCEPTION") || passStatus.includes("INCOMPLETE") || passStatus.includes("TACKLED") || passStatus === "SACK") ? "yellow" : (passStatus === "THROWN" || passStatus === "COMPLETE" ? "#00ff00" : "white") }}>{passStatus.toUpperCase()}</div></div>
-                        <div style={{ height: "100%", borderLeft: "2px solid #00ff00" }}></div>
-                        <div style={{ textAlign: "center" }}><div style={{ fontSize: "10px" }}>YARDS GAINED</div><div style={{ fontSize: "18px", marginTop: "4px" }}>{yardsGained}</div></div>
-                    </div>
-                    
-                    {/* START/PAUSE BUTTON */}
-                    <button onClick={() => setRunning(!running)} style={{ position: "absolute", top: 270, left: 10, zIndex: 10, fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "5px 10px", border: "2px solid #fff", background: running ? 'darkred' : 'green', color: "white" }}>
-                        {running ? "PAUSE" : "START"}
-                    </button>
-                    
-                    {/* REPLAY BUTTON */}
-                    <button onClick={compilePlay} style={{ position: "absolute", top: 270, left: 110, zIndex: 10, fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "5px 10px", border: "2px solid #fff", background: "#555", color: "white" }}>
-                        REPLAY
-                    </button>
-                    
-                    {/* NEW PLAY BUTTON (REPLACING OLD RESET) */}
-                    <button onClick={resetToFormation} style={{ position: "absolute", top: 270, left: 210, zIndex: 10, fontFamily: "'Press Start 2P', cursive", fontSize: "10px", padding: "5px 10px", border: "2px solid #fff", background: "orange", color: "black" }}>
-                        NEW PLAY
-                    </button>
-                </>
-            )}
-
-            {/* --- FIELD STAGE --- */}
-            <Stage 
-                width={FIELD_WIDTH} 
-                height={FIELD_HEIGHT} 
-                // Using onClick/onTap for unified desktop/mobile route drawing
-                onClick={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
-                onTap={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
-                style={{ cursor: stageCursor }}
-            >
-                <Layer>
-                    {/* FIELD BACKGROUND & LINES */}
-                    <Rect width={FIELD_WIDTH} height={ENDZONE_HEIGHT} fill="#1e90ff" />
-                    <Rect y={FIELD_HEIGHT - ENDZONE_HEIGHT} width={FIELD_WIDTH} height={ENDZONE_HEIGHT} fill="#ff4500" />
-                    <Rect y={ENDZONE_HEIGHT} width={FIELD_WIDTH} height={PLAYABLE_HEIGHT} fill="#4caf50" />
-                    
-                    {yardNumbers.map((num, i) => {
-                        const y = ENDZONE_HEIGHT + i * (PLAYABLE_HEIGHT / 10);
-                        return (
-                            <React.Fragment key={i}>
-                                <Line points={[0, y, FIELD_WIDTH, y]} stroke="white" strokeWidth={2} />
-                                <Text text={num} x={5} y={y - 10} fill="white" /><Text text={num} x={FIELD_WIDTH - 30} y={y - 10} fill="white" />
-                            </React.Fragment>
-                        );
-                    })}
-                    <Text text="R" fontSize={72} fill="yellow" x={FIELD_WIDTH / 2 - 24} y={FIELD_HEIGHT / 2 - 36} fontFamily="'Press Start 2P', cursive" />
-                    
-                    {/* --- ROUTE EDITOR LINES & POINTS (SETUP MODE ONLY) --- */}
-                    {mode === 'setup' && EDITABLE_PLAYERS.map(name => {
-                        const data = routeData[name];
-                        const allPoints = [data.start, ...data.waypoints.map(wp => [wp[0], wp[1]])]; 
-                        const flatPoints = allPoints.flat();
+            {/* --- FIELD STAGE (RIGHT SIDE) --- */}
+            <div style={{ width: FIELD_WIDTH, flexShrink: 0 }}>
+                <Stage 
+                    width={FIELD_WIDTH} 
+                    height={FIELD_HEIGHT} 
+                    // Using onClick/onTap for unified desktop/mobile route drawing
+                    onClick={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
+                    onTap={mode === 'setup' && setupPhase === 'routes' ? handleFieldClick : undefined} 
+                    style={{ cursor: stageCursor }}
+                >
+                    <Layer>
+                        {/* FIELD BACKGROUND & LINES */}
+                        <Rect width={FIELD_WIDTH} height={ENDZONE_HEIGHT} fill="#1e90ff" />
+                        <Rect y={FIELD_HEIGHT - ENDZONE_HEIGHT} width={FIELD_WIDTH} height={ENDZONE_HEIGHT} fill="#ff4500" />
+                        <Rect y={ENDZONE_HEIGHT} width={FIELD_WIDTH} height={PLAYABLE_HEIGHT} fill="#4caf50" />
                         
-                        return (
-                            <React.Fragment key={`route-${name}`}>
-                                <Line 
-                                    points={flatPoints} 
-                                    stroke={name === editingPlayer ? 'yellow' : 'rgba(255,255,255,0.5)'}
-                                    strokeWidth={3}
-                                    lineJoin="round"
-                                    dash={[10, 5]}
-                                />
-                                {/* Draw Waypoints (Only draggable in 'routes' phase) */}
-                                {data.waypoints.map((wp, index) => (
-                                    <Circle
-                                        key={`${name}-wp-${index}`}
-                                        x={wp[0]}
-                                        y={wp[1]}
-                                        radius={name === editingPlayer ? 8 : 5}
-                                        fill={name === editingPlayer ? 'red' : 'rgba(255,255,255,0.8)'}
-                                        draggable={setupPhase === 'routes'} 
-                                        onDragMove={(e) => handleWaypointDrag(name, index, e.target.position())}
-                                        onDblClick={() => {
-                                            if (setupPhase === 'routes') {
-                                                alert("Time for route segments is now calculated automatically based on distance and standard player speed.");
-                                            }
-                                        }}
+                        {/* Line of Scrimmage Visual Marker (Y = 540) - Only visible in formation setup */}
+                        {mode === 'setup' && setupPhase === 'formation' && (
+                            <Line 
+                                points={[0, LOS_Y, FIELD_WIDTH, LOS_Y]} 
+                                stroke="red" 
+                                strokeWidth={3} 
+                                dash={[10, 5]}
+                                opacity={0.7}
+                            />
+                        )}
+                        
+                        {yardNumbers.map((num, i) => {
+                            const y = ENDZONE_HEIGHT + i * (PLAYABLE_HEIGHT / 10);
+                            return (
+                                <React.Fragment key={i}>
+                                    <Line points={[0, y, FIELD_WIDTH, y]} stroke="white" strokeWidth={2} />
+                                    <Text text={num} x={5} y={y - 10} fill="white" /><Text text={num} x={FIELD_WIDTH - 30} y={y - 10} fill="white" />
+                                </React.Fragment>
+                            );
+                        })}
+                        <Text text="R" fontSize={72} fill="yellow" x={FIELD_WIDTH / 2 - 24} y={FIELD_HEIGHT / 2 - 36} fontFamily="'Press Start 2P', cursive" />
+                        
+                        {/* --- ROUTE EDITOR LINES & POINTS (SETUP MODE ONLY) --- */}
+                        {mode === 'setup' && EDITABLE_PLAYERS.map(name => {
+                            const data = routeData[name];
+                            const allPoints = [data.start, ...data.waypoints.map(wp => [wp[0], wp[1]])]; 
+                            const flatPoints = allPoints.flat();
+                            
+                            return (
+                                <React.Fragment key={`route-${name}`}>
+                                    <Line 
+                                        points={flatPoints} 
+                                        stroke={name === editingPlayer ? 'yellow' : 'rgba(255,255,255,0.5)'}
+                                        strokeWidth={3}
+                                        lineJoin="round"
+                                        dash={[10, 5]}
                                     />
-                                ))}
-                            </React.Fragment>
-                        );
-                    })}
+                                    {/* Draw Waypoints (Only draggable in 'routes' phase) */}
+                                    {data.waypoints.map((wp, index) => (
+                                        <Circle
+                                            key={`${name}-wp-${index}`}
+                                            x={wp[0]}
+                                            y={wp[1]}
+                                            radius={name === editingPlayer ? 8 : 5}
+                                            fill={name === editingPlayer ? 'red' : 'rgba(255,255,255,0.8)'}
+                                            draggable={setupPhase === 'routes'} 
+                                            onDragMove={(e) => handleWaypointDrag(name, index, e.target.position())}
+                                            onDblClick={() => {
+                                                if (setupPhase === 'routes') {
+                                                    alert("Time for route segments is now calculated automatically based on distance and standard player speed.");
+                                                }
+                                            }}
+                                        />
+                                    ))}
+                                </React.Fragment>
+                            );
+                        })}
 
-                    {/* --- PLAYERS (ALL PLAYERS: OFFENSE + DEFENSE) --- */}
-                    {players.map((p, i) => {
-                        const racTime = ball?.carrier ? ball.catchTime : 0;
-                        
-                        const [x, y] = getPlayerPos(p, time, racTime, carrierPosForRender); 
-                        
-                        const isDraggableInSetup = mode === 'setup' && setupPhase === 'formation' && p.side === 'offense';
-                        
-                        const index = playerOrderMap[p.name] || 0;
-                        const offset_magnitude = 3; 
-                        const offset_x = (index % 3) * offset_magnitude - offset_magnitude; 
-                        const offset_y = Math.floor(index / 3) * offset_magnitude - offset_magnitude; 
-                        
-                        const finalX = x + offset_x * 0.5;
-                        const finalY = y + offset_y * 0.5;
-                        
-                        let fill;
-                        if (p.side === 'defense') {
-                            fill = p.type === 'dl' ? 'darkred' : 
-                                   p.type === 'lb' ? 'red' : 
-                                   p.type === 'cb' ? 'maroon' : 'purple'; 
-                        } else {
-                            fill = p.type === "qb" ? "blue" : 
-                                   p.type === "rb" ? "green" : 
-                                   p.type === "receiver" || p.type === "te" ? "orange" : 
-                                   p.type === "ol" ? "gray" : "white";
-                        }
-                        
-                        const isCarrier = ball?.carrier === p.name && (ball?.caught || ball?.interception);
-                        const displayFill = isCarrier ? 'yellow' : fill;
+                        {/* --- PLAYERS (ALL PLAYERS: OFFENSE + DEFENSE) --- */}
+                        {players.map((p, i) => {
+                            const racTime = ball?.carrier ? ball.catchTime : 0;
+                            
+                            const [x, y] = getPlayerPos(p, time, racTime, carrierPosForRender); 
+                            
+                            const isDraggableInSetup = mode === 'setup' && setupPhase === 'formation' && p.side === 'offense';
+                            
+                            const index = playerOrderMap[p.name] || 0;
+                            const offset_magnitude = 3; 
+                            const offset_x = (index % 3) * offset_magnitude - offset_magnitude; 
+                            const offset_y = Math.floor(index / 3) * offset_magnitude - offset_magnitude; 
+                            
+                            const finalX = x + offset_x * 0.5;
+                            const finalY = y + offset_y * 0.5;
+                            
+                            let fill;
+                            if (p.side === 'defense') {
+                                fill = p.type === 'dl' ? 'darkred' : 
+                                    p.type === 'lb' ? 'red' : 
+                                    p.type === 'cb' ? 'maroon' : 'purple'; 
+                            } else {
+                                fill = p.type === "qb" ? "blue" : 
+                                    p.type === "rb" ? "green" : 
+                                    p.type === "receiver" || p.type === "te" ? "orange" : 
+                                    p.type === "ol" ? "gray" : "white";
+                            }
+                            
+                            const isCarrier = ball?.carrier === p.name && (ball?.caught || ball?.interception);
+                            const displayFill = isCarrier ? 'yellow' : fill;
 
 
-                        return (
-                            <React.Fragment key={p.name}>
-                                <Circle
-                                    x={finalX}
-                                    y={finalY}
-                                    radius={p.side === 'offense' && p.type === "ol" ? 10 : 8}
-                                    fill={displayFill}
-                                    draggable={isDraggableInSetup} 
-                                    onDragMove={(e) => handleStartDrag(p.name, e.target.position())}
+                            return (
+                                <React.Fragment key={p.name}>
+                                    <Circle
+                                        // Give the Circle a name prop so we can retrieve it in handlePlayerDragMove
+                                        name={p.name} 
+                                        x={finalX}
+                                        y={finalY}
+                                        radius={p.side === 'offense' && p.type === "ol" ? 10 : 8}
+                                        fill={displayFill}
+                                        draggable={isDraggableInSetup} 
+                                        // Use onDragMove to actively restrict the Y position and update state
+                                        onDragMove={handlePlayerDragMove} 
+                                    />
+                                    {/* Player Name/Type */}
+                                    <Text
+                                        text={p.side === 'defense' ? p.type.toUpperCase() : p.name}
+                                        fontSize={p.side === 'defense' ? 8 : 12}
+                                        fill="white"
+                                        x={p.side === 'defense' ? finalX - 10 : finalX - 14}
+                                        y={finalY - 22}
+                                    />
+                                </React.Fragment>
+                            );
+                        })}
+
+                        {/* --- THE BALL --- */}
+                        {ball && (ball.thrown || ball.caught || ball.interception) && (
+                            <React.Fragment>
+                                {/* Brown Oval Football Shape (Ellipse) */}
+                                <Ellipse
+                                    x={ball.pos[0]}
+                                    y={ball.pos[1]}
+                                    radiusX={10} // Width of the football
+                                    radiusY={6}  // Height of the football
+                                    fill={'#8B4513'} // Saddle Brown color
+                                    stroke={'black'}
+                                    strokeWidth={1}
                                 />
-                                {/* Player Name/Type */}
-                                <Text
-                                    text={p.side === 'defense' ? p.type.toUpperCase() : p.name}
-                                    fontSize={p.side === 'defense' ? 8 : 12}
-                                    fill="white"
-                                    x={p.side === 'defense' ? finalX - 10 : finalX - 14}
-                                    y={finalY - 22}
+                                {/* Simple white line for laces */}
+                                <Line
+                                    points={[
+                                        ball.pos[0] - 2, ball.pos[1], 
+                                        ball.pos[0] + 2, ball.pos[1]
+                                    ]}
+                                    stroke="white"
+                                    strokeWidth={3}
                                 />
                             </React.Fragment>
-                        );
-                    })}
-
-                    {/* --- THE BALL --- */}
-                    {ball && (ball.thrown || ball.caught || ball.interception) && (
-                        <Circle
-                            x={ball.pos[0]}
-                            y={ball.pos[1]}
-                            radius={4}
-                            fill={ball.thrown && !ball.caught && !ball.interception ? 'white' : 'transparent'} 
-                            stroke={ball.thrown && !ball.caught && !ball.interception ? 'black' : 'transparent'}
-                        />
-                    )}
-                </Layer>
-            </Stage>
+                        )}
+                    </Layer>
+                </Stage>
+            </div>
         </div>
     );
 }
