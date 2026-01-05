@@ -526,11 +526,29 @@ export default function Field({ selectedPlayProp, isCustom }) {
         <div style={{ position: "relative", width: FIELD_WIDTH }}>
             {/* --- CONTROLS / MODE TOGGLE --- */}
             <div style={{ padding: '10px', background: '#333', color: 'white' }}>
-                <h3 style={{ margin: 0, color: mode === 'setup' ? 'yellow' : 'cyan' }}>
-                    Mode: {mode.toUpperCase()}
-                </h3>
-                {/* --- Defensive coverage display and Playback Speed Slider removed per user request --- */}
-                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, color: mode === 'setup' ? 'yellow' : 'cyan' }}>
+                        Mode: {mode.toUpperCase()}
+                    </h3>
+
+                    {/* RESTORED: Playback Speed Slider */}
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <label htmlFor="speed-slider" style={{ fontSize: '12px', marginRight: '10px' }}>
+                            Playback Speed: {speedLabel}
+                        </label>
+                        <input
+                            type="range"
+                            id="speed-slider"
+                            min="1"
+                            max="10"
+                            step="1"
+                            value={sliderValue}
+                            onChange={(e) => setPlaybackSpeedMultiplier(Number(e.target.value))}
+                            style={{ width: '150px' }}
+                        />
+                    </div>
+                </div>
+
                 {/* EDITOR CONTROLS (Only visible in Setup Mode) */}
                 {mode === 'setup' && (
                     <div style={{ marginTop: '5px' }}>

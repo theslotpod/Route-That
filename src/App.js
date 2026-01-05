@@ -126,16 +126,15 @@ export default function App() {
         style={{
           display: "flex",
           justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
+          // FIXED: Use alignItems: center and set height to 100vh on the body/root for true centering
+          alignItems: "center", 
+          height: "100vh", // Use full viewport height
           width: "100%",
-          background: "#111",
-          // ----------------------------------------------------------------
-          // ADDED SCALING HERE TO MAKE THE ENTIRE SIMULATION SMALLER
-          // ----------------------------------------------------------------
+          background: "#111", // Ensure background is black
+          
+          // SCALING REMAINS
           transform: 'scale(0.85)',
-          transformOrigin: 'top center',
-          // ----------------------------------------------------------------
+          transformOrigin: 'center center', // FIXED: Center the transform for better layout
         }}
       >
         {/* Pass both the selected play data and the new isCustom flag to Field */}
