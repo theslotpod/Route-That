@@ -15,7 +15,7 @@ const allSelectablePlays = [
 
 // Helper to determine dynamic scale factor
 const getScaleFactor = () => {
-  // Assuming FIELD_WIDTH is around 500 (standard width for the Konva stage)
+  // Assuming FIELD_WIDTH is around 500 (based on Field.js content)
   const FIELD_WIDTH = 500; 
   const windowWidth = window.innerWidth;
   
@@ -134,10 +134,7 @@ export default function App() {
   }
 
   if (screen === "simulation") {
-      // *** MOBILE SCALING LOGIC START ***
       const scaleFactor = getScaleFactor();
-      // *** MOBILE SCALING LOGIC END ***
-
     return (
       <div
         style={{
@@ -148,7 +145,7 @@ export default function App() {
           width: "100%",
           background: "#111", 
           
-          // *** APPLY DYNAMIC SCALING ***
+          // DYNAMIC SCALING FOR MOBILE
           transform: `scale(${scaleFactor})`,
           transformOrigin: 'center center', 
         }}
