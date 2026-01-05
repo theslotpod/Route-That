@@ -529,38 +529,8 @@ export default function Field({ selectedPlayProp, isCustom }) {
                 <h3 style={{ margin: 0, color: mode === 'setup' ? 'yellow' : 'cyan' }}>
                     Mode: {mode.toUpperCase()}
                 </h3>
-                {defensiveCoverage && (
-                    <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: 'red' }}>
-                        DEFENSE: **{defensiveCoverage.toUpperCase().replace('COVER', 'COVER ')}**
-                    </p>
-                )}
+                {/* --- Defensive coverage display and Playback Speed Slider removed per user request --- */}
                 
-                {/* --- PLAYBACK SPEED SLIDER --- */}
-                <div style={{ marginTop: '10px', padding: '10px', border: '1px solid gray', borderRadius: '5px' }}>
-                    <label htmlFor="speed-slider" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Play Speed: <span style={{ color: 'yellow' }}>{speedLabel}</span>
-                    </label>
-                    <input
-                        type="range"
-                        id="speed-slider"
-                        min="1"
-                        max="10"
-                        // Slider value is now equal to the multiplier (1 to 10)
-                        value={sliderValue}
-                        onChange={(e) => {
-                            // The multiplier is now directly the slider value, which makes 1 the slowest and 10 the fastest
-                            const newMultiplier = parseInt(e.target.value, 10);
-                            setPlaybackSpeedMultiplier(newMultiplier);
-                        }}
-                        style={{ width: '100%' }}
-                    />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-                        <span>1x (Slowest)</span>
-                        <span>10x (Fastest)</span>
-                    </div>
-                </div>
-
-
                 {/* EDITOR CONTROLS (Only visible in Setup Mode) */}
                 {mode === 'setup' && (
                     <div style={{ marginTop: '5px' }}>

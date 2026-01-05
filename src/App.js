@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // <-- CORRECTED THIS LINE
+import React, { useState } from "react";
 import Field from "./Field";
 import vertical from "./plays/vertical";
 import comeback from "./plays/comeback";
@@ -12,7 +12,7 @@ const allSelectablePlays = [
     { ...vertical, name: "vertical" }, 
     { ...comeback, name: "comeback" },
     customPlayPlaceholder
-].filter(play => play.name !== 'vertical' && play.name !== 'comeback'); // <--- FILTERED
+].filter(play => play.name !== 'vertical' && play.name !== 'comeback');
 
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -130,6 +130,12 @@ export default function App() {
           height: "100vh",
           width: "100%",
           background: "#111",
+          // ----------------------------------------------------------------
+          // ADDED SCALING HERE TO MAKE THE ENTIRE SIMULATION SMALLER
+          // ----------------------------------------------------------------
+          transform: 'scale(0.85)',
+          transformOrigin: 'top center',
+          // ----------------------------------------------------------------
         }}
       >
         {/* Pass both the selected play data and the new isCustom flag to Field */}
