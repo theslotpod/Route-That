@@ -6,7 +6,7 @@ import { useState } from "react";
 
 // ─── Replace with your Spotify show ID ──────────────────────────────────────
 // Find it at: open.spotify.com/show/YOUR_SHOW_ID
-const SPOTIFY_SHOW_ID = "YOUR_SHOW_ID_HERE";
+const SPOTIFY_SHOW_ID = "1U06y0bbSTJgq9Hc5eXyys";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const RED   = "#d42b2b";
@@ -244,9 +244,9 @@ const ARTICLES = [
 
 const SOCIAL_LINKS = [
   { platform: "Spotify",    href: `https://open.spotify.com/show/${SPOTIFY_SHOW_ID}`, color: "#1DB954", label: "SPOTIFY" },
-  { platform: "YouTube",    href: "https://youtube.com/@theslotpod",                  color: "#FF0000", label: "YOUTUBE" },
-  { platform: "Twitter/X",  href: "https://twitter.com/theslotpod",                   color: "#1DA1F2", label: "X / TWITTER" },
-  { platform: "Instagram",  href: "https://instagram.com/theslotpod",                  color: "#E1306C", label: "INSTAGRAM" },
+  { platform: "YouTube",    href: "https://www.youtube.com/@TheSlotPodcast1219",       color: "#FF0000", label: "YOUTUBE" },
+  { platform: "Twitter/X",  href: "https://x.com/TheSlot_Pod",                        color: "#1DA1F2", label: "X / TWITTER" },
+  { platform: "Instagram",  href: "https://instagram.com/theslotpod",                 color: "#E1306C", label: "INSTAGRAM" },
 ];
 
 const STATS = [
@@ -258,7 +258,7 @@ const STATS = [
 
 /* ─── Main component ────────────────────────────────────────────────────────── */
 export default function HomePage() {
-  const spotifyConfigured = SPOTIFY_SHOW_ID !== "YOUR_SHOW_ID_HERE";
+  const spotifyConfigured = true;
 
   return (
     <div style={{ minHeight: "100vh" }}>
