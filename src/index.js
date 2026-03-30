@@ -1,10 +1,14 @@
 // src/index.js
 
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // Use the correct import for React 18+
-import App from './App'; // Import your main component
+import ReactDOM from 'react-dom/client';
+import App from './App';
 
-// Use ReactDOM.createRoot for modern React
+// --- PWA SERVICE WORKER ADDITIONS ---
+// 1. Import the service worker logic (assuming it exists in your src folder)
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+// ------------------------------------
+
 const root = ReactDOM.createRoot(document.getElementById('root')); 
 
 root.render(
@@ -13,6 +17,10 @@ root.render(
   </React.StrictMode>
 );
 
-// Note: If you have a separate CSS file for global styles (e.g., index.css), 
-// you may also need to import it here:
-// import './index.css';
+// --- PWA SERVICE WORKER REGISTRATION ---
+// If you want your app to work offline and load faster, you must REGISTER the service worker.
+// IMPORTANT: If this file uses an older create-react-app style, you might see:
+// serviceWorker.unregister();
+// You must change the call from unregister() to register().
+serviceWorkerRegistration.register();
+// ---------------------------------------
