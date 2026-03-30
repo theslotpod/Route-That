@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -8,62 +9,44 @@ import { useState } from "react";
 const SPOTIFY_SHOW_ID = "YOUR_SHOW_ID_HERE";
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ACCENT = "#00ff88";
-const GOLD = "#ffaa00";
+const RED   = "#d42b2b";
+const WHITE = "#ffffff";
 
+/* ─── Reusable section header ──────────────────────────────────────────────── */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: 64 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginBottom: 28,
-        }}
-      >
-        <div
-          style={{
-            width: 3,
-            height: 22,
-            background: ACCENT,
-            borderRadius: 2,
-            boxShadow: `0 0 12px ${ACCENT}80`,
-          }}
-        />
+    <section style={{ marginBottom: 72 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
+        {/* Red slash accent */}
+        <div style={{ display: "flex", gap: 3 }}>
+          <div style={{ width: 3, height: 20, background: RED, borderRadius: 2, opacity: 0.9 }} />
+          <div style={{ width: 3, height: 20, background: RED, borderRadius: 2, opacity: 0.4 }} />
+        </div>
         <h2
           style={{
             margin: 0,
-            fontFamily: "monospace",
-            fontSize: 12,
-            fontWeight: "bold",
-            letterSpacing: "0.18em",
-            color: "rgba(180,230,195,0.7)",
+            fontFamily: "Impact, 'Arial Black', sans-serif",
+            fontSize: 13,
+            fontWeight: "normal",
+            letterSpacing: "0.2em",
+            color: "rgba(200,215,240,0.7)",
             textTransform: "uppercase",
           }}
         >
           {title}
         </h2>
+        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
       </div>
       {children}
     </section>
   );
 }
 
+/* ─── Game cards ────────────────────────────────────────────────────────────── */
 function GameCard({
-  href,
-  title,
-  description,
-  tag,
-  accentColor,
-  icon,
+  href, title, description, tag, icon, accent,
 }: {
-  href: string;
-  title: string;
-  description: string;
-  tag: string;
-  accentColor: string;
-  icon: string;
+  href: string; title: string; description: string; tag: string; icon: string; accent: string;
 }) {
   const [hover, setHover] = useState(false);
   return (
@@ -72,37 +55,38 @@ function GameCard({
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         style={{
-          background: hover ? `${accentColor}0e` : "#0f1512",
-          border: `1px solid ${hover ? accentColor + "55" : "rgba(0,255,80,0.12)"}`,
+          background: hover ? `linear-gradient(135deg, ${accent}12 0%, #0b1628 100%)` : "#0b1628",
+          border: `1px solid ${hover ? accent + "50" : "rgba(255,255,255,0.07)"}`,
           borderRadius: 14,
-          padding: "24px 24px 20px",
+          padding: "28px 24px 22px",
           cursor: "pointer",
           transition: "all 0.2s ease",
           position: "relative",
           overflow: "hidden",
         }}
       >
+        {/* Top color strip */}
         <div
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 2,
+            top: 0, left: 0, right: 0,
+            height: 3,
             background: hover
-              ? `linear-gradient(to right, transparent, ${accentColor}, transparent)`
-              : "transparent",
+              ? `linear-gradient(to right, transparent, ${accent}, transparent)`
+              : `linear-gradient(to right, transparent, ${accent}30, transparent)`,
             transition: "all 0.2s ease",
           }}
         />
-        <div style={{ fontSize: 28, marginBottom: 12 }}>{icon}</div>
+        <div style={{ fontSize: 30, marginBottom: 14 }}>{icon}</div>
         <div
           style={{
             fontFamily: "Impact, 'Arial Black', sans-serif",
-            fontSize: 20,
+            fontSize: 22,
             letterSpacing: "0.04em",
-            color: "#fff",
-            marginBottom: 6,
+            color: WHITE,
+            marginBottom: 8,
+            textShadow: hover ? `0 0 20px ${accent}40` : "none",
+            transition: "all 0.2s ease",
           }}
         >
           {title}
@@ -110,42 +94,37 @@ function GameCard({
         <div
           style={{
             fontSize: 13,
-            color: "rgba(160,210,175,0.6)",
-            lineHeight: 1.5,
-            marginBottom: 14,
+            color: "rgba(170,195,230,0.6)",
+            lineHeight: 1.6,
+            marginBottom: 18,
           }}
         >
           {description}
         </div>
         <span
           style={{
-            fontFamily: "monospace",
+            fontFamily: "Impact, 'Arial Black', sans-serif",
             fontSize: 10,
-            letterSpacing: "0.1em",
-            color: accentColor,
-            background: `${accentColor}15`,
-            border: `1px solid ${accentColor}35`,
-            padding: "3px 10px",
-            borderRadius: 20,
+            letterSpacing: "0.14em",
+            color: accent,
+            background: `${accent}15`,
+            border: `1px solid ${accent}35`,
+            padding: "4px 12px",
+            borderRadius: 4,
           }}
         >
-          {tag} ↗
+          {tag} →
         </span>
       </div>
     </Link>
   );
 }
 
+/* ─── Article card ──────────────────────────────────────────────────────────── */
 function ArticleCard({
-  title,
-  description,
-  date,
-  tag,
+  title, description, date, tag,
 }: {
-  title: string;
-  description: string;
-  date: string;
-  tag: string;
+  title: string; description: string; date: string; tag: string;
 }) {
   const [hover, setHover] = useState(false);
   return (
@@ -153,68 +132,99 @@ function ArticleCard({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
-        background: hover ? "rgba(0,255,80,0.04)" : "#0f1512",
-        border: `1px solid ${hover ? "rgba(0,255,80,0.2)" : "rgba(0,255,80,0.08)"}`,
-        borderRadius: 12,
-        padding: "18px 20px",
+        background: hover ? "rgba(212,43,43,0.05)" : "#0b1628",
+        border: `1px solid ${hover ? "rgba(212,43,43,0.25)" : "rgba(255,255,255,0.06)"}`,
+        borderRadius: 10,
+        padding: "18px 22px",
         transition: "all 0.18s ease",
         cursor: "pointer",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        gap: "0 18px",
+        alignItems: "start",
       }}
     >
+      {/* Left accent bar */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 8,
+          width: 3,
+          height: "100%",
+          minHeight: 48,
+          background: hover ? RED : "rgba(212,43,43,0.3)",
+          borderRadius: 2,
+          transition: "all 0.18s ease",
+          marginTop: 2,
         }}
-      >
-        <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            letterSpacing: "0.12em",
-            color: GOLD,
-            background: "rgba(255,170,0,0.1)",
-            border: "1px solid rgba(255,170,0,0.25)",
-            padding: "2px 8px",
-            borderRadius: 20,
-          }}
-        >
-          {tag}
-        </span>
-        <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 9,
-            color: "rgba(120,180,140,0.4)",
-          }}
-        >
-          {date}
-        </span>
-      </div>
-      <div
-        style={{
-          fontWeight: 600,
-          fontSize: 14,
-          color: "#e8f5ec",
-          marginBottom: 6,
-          lineHeight: 1.4,
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ fontSize: 12, color: "rgba(140,190,155,0.55)", lineHeight: 1.5 }}>
-        {description}
+      />
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 7 }}>
+          <span
+            style={{
+              fontFamily: "Impact, 'Arial Black', sans-serif",
+              fontSize: 9,
+              letterSpacing: "0.14em",
+              color: RED,
+              background: "rgba(212,43,43,0.1)",
+              border: "1px solid rgba(212,43,43,0.25)",
+              padding: "2px 8px",
+              borderRadius: 3,
+            }}
+          >
+            {tag}
+          </span>
+          <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(140,165,205,0.4)" }}>
+            {date}
+          </span>
+        </div>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#eef2f8", lineHeight: 1.4, marginBottom: 5 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 12, color: "rgba(160,185,225,0.5)", lineHeight: 1.55 }}>
+          {description}
+        </div>
       </div>
     </div>
   );
 }
 
+/* ─── Social link button ────────────────────────────────────────────────────── */
+function SocialBtn({
+  href, label, color,
+}: {
+  href: string; label: string; color: string;
+}) {
+  const [hover, setHover] = useState(false);
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        fontFamily: "Impact, 'Arial Black', sans-serif",
+        fontSize: 10,
+        letterSpacing: "0.12em",
+        color: hover ? WHITE : color,
+        background: hover ? color : `${color}15`,
+        border: `1px solid ${hover ? color : color + "35"}`,
+        padding: "7px 18px",
+        borderRadius: 5,
+        textDecoration: "none",
+        transition: "all 0.15s ease",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </a>
+  );
+}
+
+/* ─── Data ───────────────────────────────────────────────────────────────────── */
 const ARTICLES = [
   {
     title: "2026 NFL Draft: The Slot Receivers You Need to Know",
-    description: "Breaking down the top slot receiver prospects heading into the 2026 NFL Draft, from college production to route running.",
+    description: "Breaking down the top slot receiver prospects heading into the 2026 NFL Draft — college production, route running, and NFL fit.",
     date: "Mar 2026",
     tag: "DRAFT",
   },
@@ -225,289 +235,298 @@ const ARTICLES = [
     tag: "ANALYSIS",
   },
   {
-    title: "PlayMap: How We Built an NFL Analytics Tool for Content Creators",
-    description: "Behind the scenes on building PlayMap — visualizing every NFL play in a shareable 9:16 format for TikTok and Reels.",
+    title: "PlayMap: Building an NFL Analytics Tool for Content Creators",
+    description: "Behind the scenes on PlayMap — visualizing every NFL play in a shareable 9:16 format for TikTok and Reels.",
     date: "Jan 2026",
     tag: "BEHIND THE SCENES",
   },
 ];
 
 const SOCIAL_LINKS = [
-  { platform: "Spotify", href: `https://open.spotify.com/show/${SPOTIFY_SHOW_ID}`, color: "#1DB954", label: "Listen on Spotify" },
-  { platform: "YouTube", href: "https://youtube.com/@theslotpod", color: "#FF0000", label: "Watch on YouTube" },
-  { platform: "Twitter/X", href: "https://twitter.com/theslotpod", color: "#1DA1F2", label: "Follow on X" },
-  { platform: "Instagram", href: "https://instagram.com/theslotpod", color: "#E1306C", label: "Follow on Instagram" },
+  { platform: "Spotify",    href: `https://open.spotify.com/show/${SPOTIFY_SHOW_ID}`, color: "#1DB954", label: "SPOTIFY" },
+  { platform: "YouTube",    href: "https://youtube.com/@theslotpod",                  color: "#FF0000", label: "YOUTUBE" },
+  { platform: "Twitter/X",  href: "https://twitter.com/theslotpod",                   color: "#1DA1F2", label: "X / TWITTER" },
+  { platform: "Instagram",  href: "https://instagram.com/theslotpod",                  color: "#E1306C", label: "INSTAGRAM" },
 ];
 
+const STATS = [
+  { num: "2025",  label: "NFL Season" },
+  { num: "24",    label: "Draft Prospects" },
+  { num: "32",    label: "NFL Teams" },
+  { num: "1080p", label: "PlayMap Export" },
+];
+
+/* ─── Main component ────────────────────────────────────────────────────────── */
 export default function HomePage() {
   const spotifyConfigured = SPOTIFY_SHOW_ID !== "YOUR_SHOW_ID_HERE";
 
   return (
-    <div
-      style={{
-        maxWidth: 900,
-        margin: "0 auto",
-        padding: "48px 24px 80px",
-      }}
-    >
-      {/* Hero */}
-      <div style={{ marginBottom: 72, textAlign: "center" }}>
+    <div style={{ minHeight: "100vh" }}>
+
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          borderBottom: "1px solid rgba(212,43,43,0.15)",
+          padding: "72px 24px 64px",
+          textAlign: "center",
+        }}
+      >
+        {/* Stadium floodlight bg */}
         <div
           style={{
-            display: "inline-block",
-            fontFamily: "monospace",
-            fontSize: 10,
-            letterSpacing: "0.22em",
-            color: ACCENT,
-            background: "rgba(0,255,80,0.08)",
-            border: "1px solid rgba(0,255,80,0.2)",
-            padding: "5px 16px",
-            borderRadius: 20,
-            marginBottom: 20,
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: `
+              radial-gradient(ellipse at 10% 0%, rgba(180,25,25,0.12) 0%, transparent 45%),
+              radial-gradient(ellipse at 90% 0%, rgba(15,50,130,0.14) 0%, transparent 45%),
+              radial-gradient(ellipse at 50% 100%, rgba(10,22,40,0.8) 0%, transparent 60%)
+            `,
           }}
-        >
-          NFL PODCAST · EST. 2024
-        </div>
-        <h1
-          style={{
-            fontFamily: "Impact, 'Arial Black', sans-serif",
-            fontSize: "clamp(40px, 8vw, 72px)",
-            letterSpacing: "0.04em",
-            margin: "0 0 16px",
-            lineHeight: 1,
-            color: "#fff",
-          }}
-        >
-          THE{" "}
-          <span
+        />
+
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 680, margin: "0 auto" }}>
+          {/* Logo */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
+            <Image
+              src="/logo.png"
+              alt="The Slot Pod"
+              width={220}
+              height={154}
+              style={{
+                objectFit: "contain",
+                filter: "drop-shadow(0 8px 32px rgba(212,43,43,0.35)) drop-shadow(0 0 80px rgba(10,22,40,0.8))",
+              }}
+              priority
+            />
+          </div>
+
+          {/* Tag */}
+          <div
             style={{
-              color: ACCENT,
-              textShadow: `0 0 40px ${ACCENT}55, 0 0 80px ${ACCENT}22`,
+              display: "inline-block",
+              fontFamily: "Impact, 'Arial Black', sans-serif",
+              fontSize: 10,
+              letterSpacing: "0.24em",
+              color: "rgba(212,43,43,0.9)",
+              background: "rgba(212,43,43,0.1)",
+              border: "1px solid rgba(212,43,43,0.25)",
+              padding: "5px 18px",
+              borderRadius: 4,
+              marginBottom: 20,
             }}
           >
-            SLOT
-          </span>{" "}
-          POD
-        </h1>
-        <p
-          style={{
-            fontSize: 16,
-            color: "rgba(160,210,175,0.65)",
-            maxWidth: 480,
-            margin: "0 auto 32px",
-            lineHeight: 1.6,
-          }}
-        >
-          In-depth NFL analysis, draft coverage, and football content.
-          We go deep on routes, schemes, and the players that make them work.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-          {SOCIAL_LINKS.map((s) => (
-            <a
-              key={s.platform}
-              href={s.href}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                fontFamily: "monospace",
-                fontSize: 10,
-                letterSpacing: "0.1em",
-                color: s.color,
-                background: `${s.color}12`,
-                border: `1px solid ${s.color}30`,
-                padding: "6px 16px",
-                borderRadius: 20,
-                textDecoration: "none",
-                transition: "all 0.15s ease",
-              }}
-            >
-              {s.label}
-            </a>
-          ))}
+            NFL PODCAST · EST. 2024
+          </div>
+
+          {/* Tagline */}
+          <p
+            style={{
+              fontSize: 16,
+              color: "rgba(180,200,235,0.65)",
+              maxWidth: 460,
+              margin: "0 auto 36px",
+              lineHeight: 1.7,
+              fontWeight: 400,
+            }}
+          >
+            In-depth NFL analysis, draft coverage, and football content.
+            We go deep on routes, schemes, and the players that make them work.
+          </p>
+
+          {/* Social links */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+            {SOCIAL_LINKS.map((s) => (
+              <SocialBtn key={s.platform} href={s.href} label={s.label} color={s.color} />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Recent Episodes */}
-      <Section title="Recent Episodes">
-        {spotifyConfigured ? (
-          <iframe
-            src={`https://open.spotify.com/embed/show/${SPOTIFY_SHOW_ID}?utm_source=generator&theme=0`}
-            width="100%"
-            height="352"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            style={{
-              border: "none",
-              borderRadius: 14,
-              background: "#0f1512",
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              background: "#0f1512",
-              border: "1px solid rgba(0,255,80,0.12)",
-              borderRadius: 14,
-              padding: "48px 32px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🎙️</div>
+      {/* ── Content ───────────────────────────────────────────────────────────── */}
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "60px 24px 80px" }}>
+
+        {/* Recent Episodes */}
+        <Section title="Recent Episodes">
+          {spotifyConfigured ? (
+            <iframe
+              src={`https://open.spotify.com/embed/show/${SPOTIFY_SHOW_ID}?utm_source=generator&theme=0`}
+              width="100%"
+              height="352"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              style={{ border: "none", borderRadius: 12, background: "#0b1628" }}
+            />
+          ) : (
             <div
               style={{
-                fontFamily: "monospace",
-                fontSize: 13,
-                color: "rgba(140,190,155,0.5)",
-                marginBottom: 8,
+                background: "#0b1628",
+                border: "1px solid rgba(212,43,43,0.15)",
+                borderRadius: 12,
+                padding: "52px 32px",
+                textAlign: "center",
               }}
             >
-              Spotify embed goes here
+              <div style={{ fontSize: 36, marginBottom: 14 }}>🎙️</div>
+              <div style={{ fontFamily: "Impact, 'Arial Black', sans-serif", fontSize: 14, letterSpacing: "0.15em", color: "rgba(200,215,240,0.5)", marginBottom: 8 }}>
+                SPOTIFY EMBED
+              </div>
+              <div style={{ fontSize: 11, color: "rgba(140,165,205,0.3)", fontFamily: "monospace" }}>
+                Set SPOTIFY_SHOW_ID in components/home/HomePage.tsx
+              </div>
             </div>
-            <div style={{ fontSize: 11, color: "rgba(120,170,135,0.35)", fontFamily: "monospace" }}>
-              Set SPOTIFY_SHOW_ID in components/home/HomePage.tsx
-            </div>
+          )}
+        </Section>
+
+        {/* Our Games */}
+        <Section title="Our Games">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+            <GameCard
+              href="/game"
+              title="ROUTE-THAT"
+              description="Draw routes, read the defense, and score. Design your own plays against real NFL teams and rosters."
+              tag="PLAY NOW"
+              accent={RED}
+              icon="🏈"
+            />
+            <GameCard
+              href="/playmap"
+              title="PLAYMAP"
+              description="Every NFL play from the 2025 season visualized on a 9:16 canvas. Built for TikTok and Reels content."
+              tag="EXPLORE"
+              accent="#3b82f6"
+              icon="📡"
+            />
           </div>
-        )}
-      </Section>
+        </Section>
 
-      {/* Our Games */}
-      <Section title="Our Games">
+        {/* Articles */}
+        <Section title="Articles & Analysis">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {ARTICLES.map((a) => (
+              <ArticleCard key={a.title} {...a} />
+            ))}
+          </div>
+        </Section>
+
+        {/* Stats + About */}
+        <Section title="About The Show">
+          {/* Stat strip */}
+          <div
+            style={{
+              background: `linear-gradient(135deg, #0e1d34 0%, #0b1628 100%)`,
+              border: "1px solid rgba(212,43,43,0.15)",
+              borderRadius: 12,
+              padding: "28px 32px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 24,
+              marginBottom: 24,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* Subtle diagonal stripe */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0, right: 0,
+                width: 200, height: "100%",
+                background: "linear-gradient(to left, rgba(212,43,43,0.04), transparent)",
+                pointerEvents: "none",
+              }}
+            />
+            {STATS.map((s) => (
+              <div key={s.label} style={{ textAlign: "center", position: "relative" }}>
+                <div
+                  style={{
+                    fontFamily: "Impact, 'Arial Black', sans-serif",
+                    fontSize: 34,
+                    color: WHITE,
+                    textShadow: `0 0 24px ${RED}40`,
+                    letterSpacing: "0.03em",
+                    lineHeight: 1,
+                    marginBottom: 6,
+                  }}
+                >
+                  {s.num}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "Impact, 'Arial Black', sans-serif",
+                    fontSize: 9,
+                    letterSpacing: "0.16em",
+                    color: "rgba(160,185,225,0.45)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p
+            style={{
+              fontSize: 14,
+              color: "rgba(160,185,225,0.55)",
+              lineHeight: 1.75,
+              margin: 0,
+            }}
+          >
+            The Slot Pod is an NFL podcast focused on skill-position players, route concepts, and
+            offensive schemes. Beyond the podcast, we build football tools — Route-That lets you
+            design and run your own plays against real rosters, and PlayMap visualizes every
+            player&apos;s season in one shareable animation.
+          </p>
+        </Section>
+
+        {/* Footer */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 16,
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            paddingTop: 28,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 14,
           }}
         >
-          <GameCard
-            href="/game"
-            title="ROUTE-THAT"
-            description="Draw routes, read the defense, and score. A retro football simulation game where you design the play."
-            tag="PLAY NOW"
-            accentColor="#22c55e"
-            icon="🏈"
-          />
-          <GameCard
-            href="/playmap"
-            title="PLAYMAP"
-            description="Visualize every NFL play from the 2025 season on a 9:16 canvas. Built for TikTok and Reels content."
-            tag="EXPLORE"
-            accentColor={ACCENT}
-            icon="📡"
-          />
-        </div>
-      </Section>
-
-      {/* Articles */}
-      <Section title="Articles & Analysis">
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {ARTICLES.map((a) => (
-            <ArticleCard key={a.title} {...a} />
-          ))}
-        </div>
-      </Section>
-
-      {/* About */}
-      <Section title="About The Show">
-        <div
-          style={{
-            background: "#0f1512",
-            border: "1px solid rgba(0,255,80,0.1)",
-            borderRadius: 14,
-            padding: "28px 28px",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 24,
-          }}
-        >
-          {[
-            { num: "2025", label: "Season Covered" },
-            { num: "24", label: "Draft Prospects Tracked" },
-            { num: "32", label: "NFL Teams in Route-That" },
-            { num: "1080p", label: "PlayMap Export Quality" },
-          ].map((stat) => (
-            <div key={stat.label} style={{ textAlign: "center" }}>
-              <div
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Image src="/logo.png" alt="TSP" width={24} height={17} style={{ objectFit: "contain", opacity: 0.5 }} />
+            <span
+              style={{
+                fontFamily: "Impact, 'Arial Black', sans-serif",
+                fontSize: 9,
+                color: "rgba(140,165,205,0.3)",
+                letterSpacing: "0.14em",
+              }}
+            >
+              © 2026 THE SLOT POD
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 20 }}>
+            {SOCIAL_LINKS.map((s) => (
+              <a
+                key={s.platform}
+                href={s.href}
+                target="_blank"
+                rel="noreferrer"
                 style={{
                   fontFamily: "Impact, 'Arial Black', sans-serif",
-                  fontSize: 32,
-                  color: ACCENT,
-                  textShadow: `0 0 20px ${ACCENT}50`,
-                  letterSpacing: "0.04em",
+                  fontSize: 9,
+                  color: "rgba(140,165,205,0.3)",
+                  textDecoration: "none",
+                  letterSpacing: "0.1em",
                 }}
               >
-                {stat.num}
-              </div>
-              <div
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: 10,
-                  letterSpacing: "0.12em",
-                  color: "rgba(140,190,155,0.5)",
-                  marginTop: 4,
-                  textTransform: "uppercase",
-                }}
-              >
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-        <p
-          style={{
-            fontSize: 14,
-            color: "rgba(150,200,165,0.55)",
-            lineHeight: 1.7,
-            marginTop: 20,
-          }}
-        >
-          The Slot Pod is an NFL podcast focused on skill-position players, route concepts, and
-          offensive schemes. Beyond the podcast, we build football tools — Route-That lets you
-          design and run your own plays, and PlayMap visualizes every player's season in one
-          shareable animation.
-        </p>
-      </Section>
-
-      {/* Footer */}
-      <div
-        style={{
-          borderTop: "1px solid rgba(0,255,80,0.08)",
-          paddingTop: 24,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "monospace",
-            fontSize: 10,
-            color: "rgba(100,160,120,0.35)",
-            letterSpacing: "0.1em",
-          }}
-        >
-          © 2026 THE SLOT POD
-        </span>
-        <div style={{ display: "flex", gap: 16 }}>
-          {SOCIAL_LINKS.map((s) => (
-            <a
-              key={s.platform}
-              href={s.href}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                fontFamily: "monospace",
-                fontSize: 9,
-                color: "rgba(100,160,120,0.35)",
-                textDecoration: "none",
-                letterSpacing: "0.08em",
-              }}
-            >
-              {s.platform.toUpperCase()}
-            </a>
-          ))}
+                {s.platform.toUpperCase()}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#080c0a",
+  themeColor: "#060e1c",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Nav />
-        <main style={{ minHeight: "calc(100vh - 56px)" }}>
+        <main style={{ minHeight: "calc(100vh - 60px)" }}>
           {children}
         </main>
       </body>

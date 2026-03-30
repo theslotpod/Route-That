@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/",        label: "THE SLOT POD", short: "HOME"     },
-  { href: "/game",    label: "ROUTE-THAT",   short: "GAME"     },
-  { href: "/playmap", label: "PLAYMAP",       short: "PLAYMAP"  },
+  { href: "/",        label: "HOME",     short: "HOME"    },
+  { href: "/game",    label: "ROUTE-THAT", short: "GAME"  },
+  { href: "/playmap", label: "PLAYMAP",  short: "MAP"     },
 ];
 
 export default function Nav() {
@@ -15,9 +16,9 @@ export default function Nav() {
   return (
     <nav
       style={{
-        height: 56,
-        background: "#07100a",
-        borderBottom: "1px solid rgba(0,255,80,0.12)",
+        height: 60,
+        background: "linear-gradient(to bottom, #0a1628 0%, #070e1b 100%)",
+        borderBottom: "1px solid rgba(212,43,43,0.2)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -25,42 +26,68 @@ export default function Nav() {
         position: "sticky",
         top: 0,
         zIndex: 100,
-        backdropFilter: "blur(12px)",
+        backdropFilter: "blur(16px)",
+        boxShadow: "0 2px 24px rgba(0,0,0,0.6)",
       }}
     >
-      {/* Logo */}
-      <Link href="/" style={{ textDecoration: "none" }}>
-        <span
-          style={{
-            fontFamily: "Impact, 'Arial Black', sans-serif",
-            fontSize: 18,
-            letterSpacing: "0.08em",
-            color: "#00ff88",
-            textShadow: "0 0 18px rgba(0,255,80,0.5)",
-          }}
-        >
-          TSP
-        </span>
+      {/* Logo mark */}
+      <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10 }}>
+        <Image
+          src="/logo.png"
+          alt="The Slot Pod"
+          width={40}
+          height={28}
+          style={{ objectFit: "contain", filter: "drop-shadow(0 0 8px rgba(212,43,43,0.4))" }}
+          priority
+        />
+        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+          <span
+            style={{
+              fontFamily: "Impact, 'Arial Black', sans-serif",
+              fontSize: 15,
+              letterSpacing: "0.06em",
+              color: "#ffffff",
+            }}
+          >
+            THE{" "}
+            <span style={{ color: "#d42b2b", textShadow: "0 0 12px rgba(212,43,43,0.6)" }}>
+              SLOT
+            </span>{" "}
+            POD
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 8,
+              letterSpacing: "0.18em",
+              color: "rgba(180,200,230,0.4)",
+              textTransform: "uppercase",
+            }}
+          >
+            NFL PODCAST
+          </span>
+        </div>
       </Link>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4 }}>
+      <div style={{ display: "flex", gap: 3 }}>
         {TABS.map((tab) => {
           const active = tab.href === "/" ? path === "/" : path.startsWith(tab.href);
           return (
             <Link key={tab.href} href={tab.href} style={{ textDecoration: "none" }}>
               <div
+                className="nav-tab"
+                data-active={active}
                 style={{
-                  padding: "6px 14px",
-                  borderRadius: 8,
-                  fontFamily: "monospace",
-                  fontSize: 11,
-                  fontWeight: active ? "bold" : "normal",
-                  letterSpacing: "0.08em",
-                  background: active ? "rgba(0,255,80,0.12)" : "transparent",
-                  color: active ? "#00ff88" : "rgba(160,210,175,0.5)",
-                  border: active ? "1px solid rgba(0,255,80,0.3)" : "1px solid transparent",
-                  textShadow: active ? "0 0 10px rgba(0,255,80,0.6)" : "none",
+                  padding: "7px 16px",
+                  borderRadius: 6,
+                  fontFamily: "Impact, 'Arial Black', sans-serif",
+                  fontSize: 12,
+                  letterSpacing: "0.1em",
+                  background: active ? "rgba(212,43,43,0.18)" : "transparent",
+                  color: active ? "#ffffff" : "rgba(180,200,230,0.45)",
+                  border: active ? "1px solid rgba(212,43,43,0.45)" : "1px solid transparent",
+                  textShadow: active ? "0 0 8px rgba(212,43,43,0.5)" : "none",
                   transition: "all 0.15s ease",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
@@ -75,7 +102,8 @@ export default function Nav() {
       </div>
 
       <style>{`
-        @media (max-width: 480px) {
+        .nav-tab:hover { background: rgba(212,43,43,0.1) !important; color: rgba(255,255,255,0.8) !important; }
+        @media (max-width: 520px) {
           .nav-label-full { display: none; }
           .nav-label-short { display: inline !important; }
         }
