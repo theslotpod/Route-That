@@ -4,10 +4,10 @@ const API = process.env.NFLDATA_API_URL ?? "http://localhost:8001";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const season = req.nextUrl.searchParams.get("season") || "2025";
-  const { id: gsisId } = await params;
+  const gsisId = params.id;
 
   try {
     const res = await fetch(
