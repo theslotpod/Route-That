@@ -4,6 +4,92 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
+/* ─── SVG Football ────────────────────────────────────────────────────────── */
+function FootballSVG() {
+  // Football path: pointed oval (vesica shape), 360×240 viewBox
+  const body = "M 6,120 C 6,52 148,8 180,8 C 212,8 354,52 354,120 C 354,188 212,232 180,232 C 148,232 6,188 6,120 Z";
+
+  return (
+    <svg
+      viewBox="0 0 360 240"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: "min(320px, 88vw)", height: "auto", filter: "drop-shadow(0 0 48px rgba(212,43,43,0.45)) drop-shadow(0 16px 60px rgba(0,0,0,0.95))" }}
+    >
+      <defs>
+        <radialGradient id="bodyGrad" cx="42%" cy="38%" r="62%">
+          <stop offset="0%"   stopColor="#162f54" />
+          <stop offset="55%"  stopColor="#0c1e38" />
+          <stop offset="100%" stopColor="#060e1c" />
+        </radialGradient>
+        <radialGradient id="sheen" cx="38%" cy="28%" r="50%">
+          <stop offset="0%"  stopColor="rgba(255,255,255,0.07)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+        </radialGradient>
+        <clipPath id="ballClip">
+          <path d={body} />
+        </clipPath>
+      </defs>
+
+      {/* White border (outer shape slightly larger) */}
+      <path d="M 2,120 C 2,49 146,4 180,4 C 214,4 358,49 358,120 C 358,191 214,236 180,236 C 146,236 2,191 2,120 Z"
+        fill="white" />
+
+      {/* Dark navy gap ring */}
+      <path d={body} fill="#091525" />
+
+      {/* Main body gradient */}
+      <path d={body} fill="url(#bodyGrad)" />
+
+      {/* Panel seam lines — 3 vertical curves */}
+      <g clipPath="url(#ballClip)" stroke="#1e3a5f" strokeWidth="1.4" fill="none" opacity="0.9">
+        {/* Center vertical seam */}
+        <path d="M 180,8 C 178,70 182,160 180,232" />
+        {/* Left panel curve */}
+        <path d="M 180,8 C 130,55 118,170 130,232" />
+        {/* Right panel curve */}
+        <path d="M 180,8 C 230,55 242,170 230,232" />
+      </g>
+
+      {/* Highlight sheen */}
+      <path d={body} fill="url(#sheen)" />
+
+      {/* "THE" — small white caps */}
+      <text
+        x="180" y="78"
+        textAnchor="middle"
+        fontFamily="Impact, 'Arial Black', sans-serif"
+        fontSize="28"
+        letterSpacing="10"
+        fill="white"
+        style={{ userSelect: "none" }}
+      >
+        THE
+      </text>
+
+      {/* "SLOT" — big bold red */}
+      <text
+        x="180" y="155"
+        textAnchor="middle"
+        fontFamily="Impact, 'Arial Black', sans-serif"
+        fontSize="72"
+        letterSpacing="4"
+        fill="#d42b2b"
+        style={{ userSelect: "none" }}
+      >
+        SLOT
+      </text>
+
+      {/* Laces — horizontal bar + 7 vertical stitches */}
+      <g stroke="white" strokeLinecap="round">
+        <line x1="106" y1="178" x2="254" y2="178" strokeWidth="3" />
+        {[118, 133, 148, 163, 178, 193, 208, 223, 238].map((x) => (
+          <line key={x} x1={x} y1="170" x2={x} y2="186" strokeWidth="2.5" />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
 // ─── Replace with your Spotify show ID ──────────────────────────────────────
 // Find it at: open.spotify.com/show/YOUR_SHOW_ID
 const SPOTIFY_SHOW_ID = "1U06y0bbSTJgq9Hc5eXyys";
@@ -316,23 +402,9 @@ export default function HomePage() {
         {/* ── Content ── */}
         <div style={{ position: "relative", zIndex: 1, maxWidth: 700, margin: "0 auto" }}>
 
-          {/* Football logo — the visual anchor */}
+          {/* SVG Football */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 0 }}>
-            <Image
-              src="/logo.png"
-              alt="The Slot Pod"
-              width={300}
-              height={210}
-              style={{
-                objectFit: "contain",
-                filter: [
-                  "drop-shadow(0 0 40px rgba(212,43,43,0.5))",
-                  "drop-shadow(0 0 80px rgba(212,43,43,0.2))",
-                  "drop-shadow(0 12px 48px rgba(0,0,0,0.9))",
-                ].join(" "),
-              }}
-              priority
-            />
+            <FootballSVG />
           </div>
 
           {/* "POD" — completes THE SLOT → THE SLOT POD */}
