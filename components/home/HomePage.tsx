@@ -268,68 +268,114 @@ export default function HomePage() {
         style={{
           position: "relative",
           overflow: "hidden",
-          borderBottom: "1px solid rgba(212,43,43,0.15)",
-          padding: "72px 24px 64px",
+          borderBottom: "1px solid rgba(212,43,43,0.2)",
+          padding: "80px 24px 72px",
           textAlign: "center",
+          background: "#05090f",
         }}
       >
-        {/* Stadium floodlight bg */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            pointerEvents: "none",
-            background: `
-              radial-gradient(ellipse at 10% 0%, rgba(180,25,25,0.12) 0%, transparent 45%),
-              radial-gradient(ellipse at 90% 0%, rgba(15,50,130,0.14) 0%, transparent 45%),
-              radial-gradient(ellipse at 50% 100%, rgba(10,22,40,0.8) 0%, transparent 60%)
-            `,
-          }}
-        />
+        {/* ── Stadium atmosphere layers ── */}
 
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 680, margin: "0 auto" }}>
-          {/* Logo */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
+        {/* Base deep navy field */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, #060c1a 0%, #04080f 60%, #050d0a 100%)", pointerEvents: "none" }} />
+
+        {/* Left red stadium floodlight — matches logo photo */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at -5% 10%, rgba(200,30,20,0.55) 0%, rgba(160,20,10,0.25) 18%, transparent 45%)",
+        }} />
+
+        {/* Right white/blue twin stadium lights — matches logo photo */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 105% 0%, rgba(220,235,255,0.18) 0%, rgba(140,180,255,0.1) 15%, transparent 38%)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 92% 8%, rgba(180,210,255,0.12) 0%, transparent 25%)",
+        }} />
+
+        {/* Turf horizon glow at bottom — green field like in logo */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 50% 130%, rgba(10,60,25,0.55) 0%, rgba(8,45,18,0.3) 20%, transparent 45%)",
+        }} />
+
+        {/* Center vignette to focus attention on logo */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 50% 38%, transparent 20%, rgba(4,8,15,0.45) 70%)",
+        }} />
+
+        {/* Subtle yard-line horizontal streaks */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: 120, pointerEvents: "none",
+          background: "linear-gradient(to top, rgba(10,55,20,0.18) 0%, transparent 100%)",
+        }} />
+
+        {/* ── Content ── */}
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 700, margin: "0 auto" }}>
+
+          {/* Football logo — the visual anchor */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 0 }}>
             <Image
               src="/logo.png"
               alt="The Slot Pod"
-              width={220}
-              height={154}
+              width={300}
+              height={210}
               style={{
                 objectFit: "contain",
-                filter: "drop-shadow(0 8px 32px rgba(212,43,43,0.35)) drop-shadow(0 0 80px rgba(10,22,40,0.8))",
+                filter: [
+                  "drop-shadow(0 0 40px rgba(212,43,43,0.5))",
+                  "drop-shadow(0 0 80px rgba(212,43,43,0.2))",
+                  "drop-shadow(0 12px 48px rgba(0,0,0,0.9))",
+                ].join(" "),
               }}
               priority
             />
           </div>
 
-          {/* Tag */}
+          {/* "POD" — completes THE SLOT → THE SLOT POD */}
           <div
             style={{
-              display: "inline-block",
               fontFamily: "Impact, 'Arial Black', sans-serif",
-              fontSize: 10,
-              letterSpacing: "0.24em",
-              color: "rgba(212,43,43,0.9)",
-              background: "rgba(212,43,43,0.1)",
-              border: "1px solid rgba(212,43,43,0.25)",
-              padding: "5px 18px",
-              borderRadius: 4,
-              marginBottom: 20,
+              fontSize: "clamp(38px, 8vw, 68px)",
+              letterSpacing: "0.18em",
+              color: "#ffffff",
+              lineHeight: 1,
+              marginBottom: 10,
+              textShadow: "0 2px 30px rgba(0,0,0,0.9), 0 0 60px rgba(212,43,43,0.15)",
             }}
           >
+            POD
+          </div>
+
+          {/* NFL PODCAST badge */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "Impact, 'Arial Black', sans-serif",
+              fontSize: 11,
+              letterSpacing: "0.26em",
+              color: "rgba(200,215,240,0.6)",
+              marginBottom: 28,
+            }}
+          >
+            <div style={{ width: 28, height: 1, background: "rgba(212,43,43,0.5)" }} />
             NFL PODCAST · EST. 2024
+            <div style={{ width: 28, height: 1, background: "rgba(212,43,43,0.5)" }} />
           </div>
 
           {/* Tagline */}
           <p
             style={{
-              fontSize: 16,
-              color: "rgba(180,200,235,0.65)",
-              maxWidth: 460,
+              fontSize: 15,
+              color: "rgba(170,195,235,0.55)",
+              maxWidth: 440,
               margin: "0 auto 36px",
-              lineHeight: 1.7,
-              fontWeight: 400,
+              lineHeight: 1.75,
             }}
           >
             In-depth NFL analysis, draft coverage, and football content.
