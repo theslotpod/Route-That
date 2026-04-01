@@ -8,6 +8,7 @@ const TABS = [
   { href: "/",        label: "HOME",     short: "HOME"    },
   { href: "/game",    label: "ROUTE-THAT", short: "GAME"  },
   { href: "/playmap", label: "PLAYMAP",  short: "MAP"     },
+  { href: "/bill",    label: "ASK BILL", short: "BILL"    },
 ];
 
 export default function Nav() {
